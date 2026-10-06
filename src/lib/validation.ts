@@ -1,19 +1,25 @@
 import * as yup from 'yup';
 
-import { DESCRIPTION_MAX_LENGTH, NAME_MAX_LENGTH } from './constants';
+import { DESCRIPTION_MAX_LENGTH, NAME_MAX_LENGTH, NAME_MIN_LENGTH } from './constants';
 
 export const metadataSchema = yup.object({
   name: yup
     .string()
     .trim()
-    .required('Give your clip a name')
-    .min(2, 'Name must be at least 2 characters')
-    .max(NAME_MAX_LENGTH, `Name must be at most ${NAME_MAX_LENGTH} characters`),
+    .required('validation.nameRequired')
+    .min(NAME_MIN_LENGTH, 'validation.nameMin')
+    .max(NAME_MAX_LENGTH, 'validation.nameMax'),
   description: yup
     .string()
     .trim()
-    .max(DESCRIPTION_MAX_LENGTH, `Description must be at most ${DESCRIPTION_MAX_LENGTH} characters`)
+    .max(DESCRIPTION_MAX_LENGTH, 'validation.descriptionMax')
     .default(''),
 });
+
+export type ValidationMessageKey =
+  | 'validation.nameRequired'
+  | 'validation.nameMin'
+  | 'validation.nameMax'
+  | 'validation.descriptionMax';
 
 export type MetadataFormValues = yup.InferType<typeof metadataSchema>;

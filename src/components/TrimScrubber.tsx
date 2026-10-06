@@ -3,11 +3,13 @@ import { Image } from 'expo-image';
 import type { VideoPlayer } from 'expo-video';
 import { useEffect, useMemo, useState } from 'react';
 import { Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { useFilmstrip } from '@/hooks/useFilmstrip';
+import { useUpperCase } from '@/i18n/useUpperCase';
 import { CLIP_DURATION } from '@/lib/constants';
 import { clipLengthFor, formatSeconds, formatTime } from '@/lib/time';
 
@@ -32,6 +34,8 @@ export function TrimScrubber({
   onScrub,
   onChange,
 }: TrimScrubberProps) {
+  const { t } = useTranslation();
+  const upper = useUpperCase();
   const [trackWidth, setTrackWidth] = useState(0);
   const [dragStart, setDragStart] = useState<number | null>(null);
   const frames = useFilmstrip(player, duration, FRAME_COUNT, ready);
@@ -144,8 +148,13 @@ export function TrimScrubber({
           className="overflow-hidden rounded-2xl bg-surface-muted dark:bg-surface-dark-muted"
           style={{ height: TRACK_HEIGHT }}
           accessibilityRole="adjustable"
-          accessibilityLabel="Segment selector"
-          accessibilityValue={{ text: `${formatTime(previewStart)} to ${formatTime(previewEnd)}` }}
+          accessibilityLabel={t('crop.segmentSelector')}
+          accessibilityValue={{
+            text: t('crop.segmentRange', {
+              start: formatTime(previewStart),
+              end: formatTime(previewEnd),
+            }),
+          }}
         >
           <Filmstrip frames={frames} />
           <Shade style={leftShadeStyle} className="left-0" />
@@ -163,21 +172,21 @@ export function TrimScrubber({
       </GestureDetector>
 
       <View className="mt-3 flex-row items-center justify-between">
-        <TimeLabel label="Start" value={formatTime(previewStart, true)} />
+        <TimeLabel label={upper(t('crop.start'))} value={formatTime(previewStart, true)} />
         <View className="rounded-full bg-accent-soft px-3 py-1 dark:bg-surface-dark-muted">
           <Text className="text-xs font-semibold text-accent">
-            {formatSeconds(previewEnd - previewStart)} selected
+            {t('crop.selected', { duration: formatSeconds(previewEnd - previewStart) })}
           </Text>
         </View>
-        <TimeLabel label="End" value={formatTime(previewEnd, true)} alignRight />
+        <TimeLabel label={upper(t('crop.end'))} value={formatTime(previewEnd, true)} alignRight />
       </View>
       {maxX > 0 ? (
         <Text className="mt-3 text-center text-xs text-ink-muted">
-          Drag the frame or tap the strip to pick your {clipLength}-second moment
+          {t('crop.dragHint', { seconds: clipLength })}
         </Text>
       ) : (
         <Text className="mt-3 text-center text-xs text-ink-muted">
-          This video is shorter than {CLIP_DURATION} seconds, so the whole clip is kept
+          {t('crop.shortHint', { seconds: CLIP_DURATION })}
         </Text>
       )}
     </View>
@@ -241,9 +250,7 @@ function TimeLabel({
 }) {
   return (
     <View className={alignRight ? 'items-end' : 'items-start'}>
-      <Text className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-        {label}
-      </Text>
+      <Text className="text-[11px] font-semibold tracking-wider text-ink-muted">{label}</Text>
       <Text
         className="text-base font-semibold text-ink dark:text-white"
         style={{ fontVariant: ['tabular-nums'] }}

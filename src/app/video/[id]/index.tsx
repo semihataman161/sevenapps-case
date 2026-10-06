@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { VideoPlayer } from '@/components/VideoPlayer';
@@ -13,18 +14,24 @@ import { videoUri } from '@/services/videoFiles';
 import { useVideo } from '@/store/videoStore';
 
 export default function VideoDetailsScreen() {
+  const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const video = useVideo(id);
-  const colors = useThemeColors();
   const deleteMutation = useDeleteVideoMutation();
 
   if (!video) {
     return (
       <EmptyState
         icon="help-circle-outline"
-        title="Clip not found"
-        message="It may have been deleted."
-        action={<Button title="Back to diary" variant="secondary" onPress={() => router.back()} />}
+        title={t('video.notFoundTitle')}
+        message={t('video.notFoundMessage')}
+        action={
+          <Button
+            title={t('video.backToDiary')}
+            variant="secondary"
+            onPress={() => router.back()}
+          />
+        }
       />
     );
   }
@@ -32,78 +39,68 @@ export default function VideoDetailsScreen() {
   const openEditor = () => router.push({ pathname: '/video/[id]/edit', params: { id: video.id } });
 
   const confirmDelete = () =>
-    Alert.alert('Delete clip?', `"${video.name}" will be removed from your diary.`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('video.deleteTitle'), t('video.deleteMessage', { name: video.name }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () =>
           deleteMutation.mutate(video, {
             onSuccess: () => router.back(),
-            onError: (error) => Alert.alert('Could not delete clip', error.message),
+            onError: (error) => Alert.alert(t('video.deleteFailed'), error.message),
           }),
       },
     ]);
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Pressable onPress={openEditor} hitSlop={12} accessibilityLabel="Edit details">
-              <Ionicons name="create-outline" size={24} color={colors.accent} />
-            </Pressable>
-          ),
-        }}
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName="px-5 pb-12 pt-2"
+    >
+      <VideoPlayer
+        uri={videoUri(video.fileName)}
+        aspectRatio={video.width && video.height ? video.width / video.height : undefined}
+        autoPlay
+        loop
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="px-5 pb-12 pt-2"
-      >
-        <VideoPlayer
-          uri={videoUri(video.fileName)}
-          aspectRatio={video.width && video.height ? video.width / video.height : undefined}
-          autoPlay
-          loop
+
+      <Animated.View entering={FadeInDown.delay(100).duration(350)} className="mt-6">
+        <Text className="text-2xl font-bold text-ink dark:text-white">{video.name}</Text>
+        <View className="mt-2 flex-row items-center gap-3">
+          <Meta icon="calendar-outline" text={formatDate(video.createdAt, i18n.language)} />
+          <Meta
+            icon="time-outline"
+            text={t('video.clipLength', { duration: formatSeconds(video.duration) })}
+          />
+        </View>
+
+        {video.description ? (
+          <Text className="mt-5 text-base leading-7 text-ink dark:text-neutral-200">
+            {video.description}
+          </Text>
+        ) : (
+          <Pressable onPress={openEditor}>
+            <Text className="mt-5 text-base italic text-ink-muted">{t('video.noDescription')}</Text>
+          </Pressable>
+        )}
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.delay(200).duration(350)} className="mt-10 gap-3">
+        <Button
+          title={t('video.edit')}
+          icon="create-outline"
+          variant="secondary"
+          onPress={openEditor}
         />
-
-        <Animated.View entering={FadeInDown.delay(100).duration(350)} className="mt-6">
-          <Text className="text-2xl font-bold text-ink dark:text-white">{video.name}</Text>
-          <View className="mt-2 flex-row items-center gap-3">
-            <Meta icon="calendar-outline" text={formatDate(video.createdAt)} />
-            <Meta icon="time-outline" text={`${formatSeconds(video.duration)} clip`} />
-          </View>
-
-          {video.description ? (
-            <Text className="mt-5 text-base leading-7 text-ink dark:text-neutral-200">
-              {video.description}
-            </Text>
-          ) : (
-            <Pressable onPress={openEditor}>
-              <Text className="mt-5 text-base italic text-ink-muted">
-                No description yet — tap to add one.
-              </Text>
-            </Pressable>
-          )}
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(200).duration(350)} className="mt-10 gap-3">
-          <Button
-            title="Edit details"
-            icon="create-outline"
-            variant="secondary"
-            onPress={openEditor}
-          />
-          <Button
-            title="Delete clip"
-            icon="trash-outline"
-            variant="danger"
-            loading={deleteMutation.isPending}
-            onPress={confirmDelete}
-          />
-        </Animated.View>
-      </ScrollView>
-    </>
+        <Button
+          title={t('video.delete')}
+          icon="trash-outline"
+          variant="danger"
+          loading={deleteMutation.isPending}
+          onPress={confirmDelete}
+        />
+      </Animated.View>
+    </ScrollView>
   );
 }
 

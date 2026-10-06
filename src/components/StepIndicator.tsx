@@ -1,7 +1,10 @@
 import { Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
-const STEPS = ['Select', 'Trim', 'Details'] as const;
+import { useUpperCase } from '@/i18n/useUpperCase';
+
+const STEPS = ['select', 'trim', 'details'] as const;
 
 function StepDot({ active }: { active: boolean }) {
   const style = useAnimatedStyle(() => ({
@@ -12,15 +15,23 @@ function StepDot({ active }: { active: boolean }) {
 }
 
 export function StepIndicator({ step }: { step: 0 | 1 | 2 }) {
+  const { t } = useTranslation();
+  const upper = useUpperCase();
   return (
     <View className="px-5 pb-2 pt-3">
       <View className="mb-2 flex-row gap-2">
-        {STEPS.map((label, index) => (
-          <StepDot key={label} active={index <= step} />
+        {STEPS.map((key, index) => (
+          <StepDot key={key} active={index <= step} />
         ))}
       </View>
-      <Text className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-        Step {step + 1} of {STEPS.length} · {STEPS[step]}
+      <Text className="text-xs font-semibold tracking-wider text-ink-muted">
+        {upper(
+          t('crop.stepLabel', {
+            current: step + 1,
+            total: STEPS.length,
+            label: t(`crop.steps.${STEPS[step]}`),
+          }),
+        )}
       </Text>
     </View>
   );

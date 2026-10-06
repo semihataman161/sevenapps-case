@@ -66,9 +66,10 @@ describe('cropVideo', () => {
 });
 
 describe('describeCropError', () => {
-  it('maps native error codes to friendly messages', () => {
-    expect(describeCropError({ code: 'INVALID_END' })).toMatch(/adjust the scrubber/);
-    expect(describeCropError({ code: 'FILE_NOT_FOUND' })).toMatch(/picking it again/);
-    expect(describeCropError(new Error('boom'))).toBe('boom');
+  it('maps native error codes to translation keys', () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(describeCropError({ code: 'INVALID_END' })).toBe('errors.segmentOutside');
+    expect(describeCropError({ code: 'FILE_NOT_FOUND' })).toBe('errors.sourceUnreadable');
+    expect(describeCropError(new Error('boom'))).toBe('errors.cropFailed');
   });
 });

@@ -15,13 +15,14 @@ Built for the SevenApps React Native case study.
 | **Crop modal** (`/crop`) | 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a filmstrip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
 | **Cropping** | `trimVideo` from `expo-trim-video`, run through a TanStack Query mutation. |
 | **Edit** (`/video/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
+| **Settings** (`/settings`) | Gear icon on the clip list. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
 | **Bonus tech** | Expo SQLite for storage, Reanimated for the scrubber/press/entering animations, Yup validation (via react-hook-form). |
 
 ## Tech stack
 
 Expo SDK 57 · Expo Router · Zustand · TanStack Query · expo-trim-video · NativeWind 4 ·
 expo-video · Expo SQLite · Reanimated 4 + Gesture Handler · Yup + react-hook-form ·
-FlashList · expo-image · React Compiler.
+FlashList · expo-image · i18next + react-i18next + expo-localization · React Compiler.
 
 ## Getting started
 
@@ -71,7 +72,8 @@ If CocoaPods fails with a Unicode/encoding error, run with a UTF-8 locale:
    selected 5 seconds. Tap the video to pause/play. Tap **Next**.
 4. Enter a name (required, 2–60 chars) and an optional description (≤ 500 chars), then
    **Crop & save**. You land on the new clip's details page.
-5. From details, use the pencil / **Edit details** to change the text, or **Delete clip**.
+5. From details, use **Edit details** to change the text, or **Delete clip**.
+6. Tap the gear icon on the clip list to open **Settings** and change the theme or language.
 
 Videos shorter than 5 s are kept whole. Videos shorter than 1 s are rejected.
 
@@ -84,6 +86,7 @@ src/
 │   ├── index.tsx             # Clip list
 │   ├── video/[id]/index.tsx  # Details
 │   ├── video/[id]/edit.tsx   # Edit (modal)
+│   ├── settings.tsx          # Theme + language
 │   └── crop/                 # Crop modal: its own stack
 │       ├── _layout.tsx
 │       ├── index.tsx         # Step 1 – select
@@ -92,9 +95,10 @@ src/
 ├── components/               # VideoPlayer/VideoFrame, TrimScrubber, MetadataForm, VideoCard, ui/*
 ├── hooks/                    # TanStack mutations, filmstrip frames
 ├── services/                 # cropVideo pipeline, file storage
+├── i18n/                     # i18next setup, supported languages, locales/{en,tr,de,es}.ts
 ├── db/                       # SQLite client, migrations, repository
-├── store/                    # Zustand: video list, crop draft
-├── lib/                      # constants, time math, Yup schema, theme, query client
+├── store/                    # Zustand: video list, crop draft, persisted settings
+├── lib/                      # constants, time math, Yup schema, theme, preferences, query client
 └── types/
 ```
 
@@ -127,6 +131,12 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
   The selection window moves on the UI thread (Gesture Handler + Reanimated) and only hops to
   JS every few pan events to seek the preview. The playhead follows `timeUpdate` events
   without re-rendering React.
+- **Preview loop**: `timeUpdate` events arrive late and only every 100 ms, which let the frame
+  after the segment's end flash on screen. While playing, the trim screen reads
+  `player.currentTime` every animation frame and loops back if the next check would pass the
+  end. Android presents ~40–50 ms past the position it reports, so it loops 70 ms early.
+  Measured on Release builds by screen recording: no frame after the end is shown on either
+  platform, and the last second of the segment plays in full.
 - **Trim bounds**: native trimmers reject an `end` past the real duration, and picker
   durations are rounded, so `segmentBounds()` clamps the segment and keeps a 50 ms margin
   from the very end. The player's precise duration replaces the picker's once loaded.
@@ -135,7 +145,28 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
 - **Reusable components**: `VideoPlayer` (self-contained) / `VideoFrame` (screen-driven
   player), `MetadataForm` (used by both the crop flow and the edit screen), `Button`,
   `EmptyState`, `StepIndicator`.
-- **Dark mode** follows the system setting.
+- **Theme**: the choice is applied with NativeWind's `colorScheme.set()`, which overrides
+  React Native's app-wide `Appearance`. So Tailwind `dark:` classes, `useColorScheme()`-based
+  colours (headers, icons) and native UI (alerts, keyboard, video controls) all switch
+  together. "System" follows the device.
+- **Settings persistence**: a Zustand `persist` store backed by `expo-sqlite/kv-store`'s
+  **synchronous** API. Preferences are restored before the first render, so there's no
+  flash of the wrong theme or language on launch.
+- **i18n**: i18next with bundled resources, initialised synchronously. "Device language" picks
+  the first supported language from the device's list (falls back to English) and is
+  re-checked when the app returns to the foreground (Android doesn't restart on a language
+  change). Translations are typed: every locale must match `locales/en.ts`, so a missing key
+  fails `tsc`, and a unit test checks that every locale uses the same `{{placeholders}}`.
+  Validation and crop errors carry translation keys, not English text, so they're translated
+  at render time. Dates are formatted for the active language.
+
+### Adding a language
+
+1. Copy `src/i18n/locales/en.ts` to e.g. `fr.ts` and translate it (typed as `Translation`).
+2. Add the code to `SUPPORTED_LANGUAGES` and `NATIVE_LANGUAGE_NAMES` in `src/i18n/languages.ts`,
+   and register it in `resources` in `src/i18n/index.ts`.
+3. Add a `languages.fr` name to every locale, and `fr` to `supportedLocales` of the
+   `expo-localization` plugin in `app.json`.
 
 ## Testing
 
@@ -143,9 +174,10 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
 npm test
 ```
 
-Unit tests cover segment math and formatting, the Yup schema, both Zustand stores, and the
+Unit tests cover segment math and formatting, the Yup schema, both Zustand stores, the
 crop pipeline (trim → store → persist, rollback on DB failure, error mapping) with native
-modules mocked.
+modules mocked, device-language selection, and locale completeness (same keys and
+placeholders in every language).
 
 Tested manually with dev builds on an **iOS Simulator** (iPhone 17 Pro, iOS 26.3, Xcode 27) and
 an **Android emulator** (Pixel 9 Pro): select → scrub → validate → crop & save, a source shorter
@@ -158,3 +190,23 @@ mode. Saved clips were checked with `ffprobe` (exactly 5.000 s for a normal segm
   You choose where it starts and ends by moving the window, not by resizing it.
 - Clips are kept in the app's own storage. Deleting the app deletes the diary.
 - No web support: `expo-trim-video` is native-only.
+- **Android trim accuracy (`expo-trim-video`).** On iOS the library re-encodes with
+  `AVAssetExportSession`, so clips are frame-accurate: a 9.646–14.646 s selection produced
+  exactly 150 frames, 9.667–14.633 s. On Android it copies samples without re-encoding
+  (`MediaExtractor` + `MediaMuxer`) and seeks with `SEEK_TO_CLOSEST_SYNC`:
+  - The **video** starts at the keyframe nearest to the selected start, which can be before or
+    after it, while the **audio** starts at the selected time. When they differ, the clip opens
+    on a frozen first video frame until the video catches up, and the selected segment isn't
+    exactly what's kept. With a test video whose keyframes are 8.3 s apart, a 15.0–19.95 s
+    selection produced audio from 0 s but video only from 1.57 s (source 16.67–19.77 s).
+    Camera footage usually has a keyframe about every second, so the effect is smaller but can
+    still be visible.
+  - Copying stops at the first sample (audio or video) past the end, so the clip can be a few
+    frames short.
+  - Selections starting at 0 s are unaffected.
+
+  The case asks for `expo-trim-video`, so the app uses it unmodified. Making Android
+  frame-accurate would mean re-encoding inside the library (for example with Media3
+  Transformer, which the app already ships through `expo-video`) or contributing that upstream.
+- The in-app language applies to the app's own UI. System-provided screens such as the video
+  picker use the device language.

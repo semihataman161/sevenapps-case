@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { Redirect, router, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { BackHandler, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { MetadataForm } from '@/components/MetadataForm';
 import { StepIndicator } from '@/components/StepIndicator';
@@ -15,6 +16,7 @@ import { useCropDraftStore } from '@/store/cropDraftStore';
 import type { MetadataFormValues } from '@/lib/validation';
 
 export default function DetailsScreen() {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   const source = useCropDraftStore((s) => s.source);
   const start = useCropDraftStore((s) => s.start);
@@ -54,16 +56,19 @@ export default function DetailsScreen() {
               {formatTime(bounds.start, true)} – {formatTime(bounds.end, true)}
             </Text>
             <Text className="text-xs text-ink-muted">
-              {formatSeconds(bounds.end - bounds.start)} from {source.fileName ?? 'your video'}
+              {t('crop.segmentFrom', {
+                duration: formatSeconds(bounds.end - bounds.start),
+                file: source.fileName ?? t('crop.yourVideo'),
+              })}
             </Text>
           </View>
         </View>
 
         <MetadataForm
-          submitLabel={isPending ? 'Cropping…' : 'Crop & save'}
+          submitLabel={isPending ? t('crop.cropping') : t('crop.cropAndSave')}
           submitIcon="cut-outline"
           isSubmitting={isPending}
-          submitError={cropMutation.isError ? describeCropError(cropMutation.error) : null}
+          submitError={cropMutation.isError ? t(describeCropError(cropMutation.error)) : null}
           onSubmit={onSubmit}
         />
       </KeyboardAwareScroll>

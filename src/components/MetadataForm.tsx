@@ -1,11 +1,16 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm, type Control } from 'react-hook-form';
 import { Text, TextInput, View, type TextInputProps } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { DESCRIPTION_MAX_LENGTH, NAME_MAX_LENGTH } from '@/lib/constants';
+import { DESCRIPTION_MAX_LENGTH, NAME_MAX_LENGTH, NAME_MIN_LENGTH } from '@/lib/constants';
 import { useThemeColors } from '@/lib/theme';
-import { metadataSchema, type MetadataFormValues } from '@/lib/validation';
+import {
+  metadataSchema,
+  type MetadataFormValues,
+  type ValidationMessageKey,
+} from '@/lib/validation';
 
 import { Button } from './ui/Button';
 
@@ -26,6 +31,7 @@ export function MetadataForm({
   isSubmitting = false,
   submitError,
 }: MetadataFormProps) {
+  const { t } = useTranslation();
   const { control, handleSubmit, formState } = useForm<MetadataFormValues>({
     resolver: yupResolver(metadataSchema),
     defaultValues: { name: '', description: '', ...defaultValues },
@@ -37,8 +43,8 @@ export function MetadataForm({
       <Field
         control={control}
         name="name"
-        label="Name"
-        placeholder="e.g. Sunset at the pier"
+        label={t('form.name')}
+        placeholder={t('form.namePlaceholder')}
         maxLength={NAME_MAX_LENGTH}
         returnKeyType="next"
         editable={!isSubmitting}
@@ -46,8 +52,8 @@ export function MetadataForm({
       <Field
         control={control}
         name="description"
-        label="Description"
-        placeholder="What made this moment worth keeping?"
+        label={t('form.description')}
+        placeholder={t('form.descriptionPlaceholder')}
         maxLength={DESCRIPTION_MAX_LENGTH}
         multiline
         editable={!isSubmitting}
@@ -82,6 +88,7 @@ type FieldProps = TextInputProps & {
 };
 
 function Field({ control, name, label, maxLength, multiline, ...inputProps }: FieldProps) {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   return (
     <Controller
@@ -110,7 +117,9 @@ function Field({ control, name, label, maxLength, multiline, ...inputProps }: Fi
             {...inputProps}
           />
           {error ? (
-            <Text className="mt-1.5 text-sm text-red-600 dark:text-red-400">{error.message}</Text>
+            <Text className="mt-1.5 text-sm text-red-600 dark:text-red-400">
+              {t(error.message as ValidationMessageKey, { min: NAME_MIN_LENGTH, max: maxLength })}
+            </Text>
           ) : null}
         </View>
       )}

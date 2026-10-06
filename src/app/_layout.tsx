@@ -1,4 +1,5 @@
 import '@/global.css';
+import '@/i18n';
 import '@/lib/interop';
 
 import { QueryClientProvider, useIsMutating } from '@tanstack/react-query';
@@ -6,13 +7,16 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { initPreferences } from '@/lib/preferences';
 import { queryClient } from '@/lib/queryClient';
 import { useThemeColors } from '@/lib/theme';
 import { useVideoStore } from '@/store/videoStore';
 
+initPreferences();
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -37,6 +41,7 @@ export default function RootLayout() {
 }
 
 function RootNavigator() {
+  const { t } = useTranslation();
   const scheme = useColorScheme();
   const colors = useThemeColors();
   const isCropping = useIsMutating({ mutationKey: ['videos', 'crop'] }) > 0;
@@ -61,15 +66,22 @@ function RootNavigator() {
         <Stack.Screen
           name="index"
           options={{
-            title: 'Video Diary',
+            title: t('nav.diary'),
             headerLargeTitle: true,
             headerLargeTitleShadowVisible: false,
           }}
         />
-        <Stack.Screen name="video/[id]/index" options={{ title: '', headerBackTitle: 'Diary' }} />
+        <Stack.Screen
+          name="video/[id]/index"
+          options={{ title: '', headerBackTitle: t('nav.diaryBack') }}
+        />
         <Stack.Screen
           name="video/[id]/edit"
-          options={{ presentation: 'modal', title: 'Edit details' }}
+          options={{ presentation: 'modal', title: t('nav.editDetails') }}
+        />
+        <Stack.Screen
+          name="settings"
+          options={{ title: t('nav.settings'), headerBackTitle: t('nav.diaryBack') }}
         />
         <Stack.Screen
           name="crop"

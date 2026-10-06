@@ -45,19 +45,21 @@ export async function cropVideo({ source, start, metadata }: CropVideoInput): Pr
   return video;
 }
 
-export function describeCropError(error: unknown): string {
+export type CropErrorKey =
+  'errors.segmentOutside' | 'errors.sourceUnreadable' | 'errors.cropFailed';
+
+export function describeCropError(error: unknown): CropErrorKey {
   const code = (error as { code?: string } | null)?.code;
   switch (code) {
     case 'INVALID_END':
     case 'INVALID_RANGE':
     case 'INVALID_START':
-      return 'The selected segment is outside the video. Go back and adjust the scrubber.';
+      return 'errors.segmentOutside';
     case 'FILE_NOT_FOUND':
     case 'INVALID_URI':
-      return 'The original video could not be read. Try picking it again.';
+      return 'errors.sourceUnreadable';
     default:
-      return error instanceof Error && error.message
-        ? error.message
-        : 'Something went wrong while cropping the video.';
+      console.warn('Crop failed', error);
+      return 'errors.cropFailed';
   }
 }

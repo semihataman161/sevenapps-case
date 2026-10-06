@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +14,7 @@ import { useThemeColors } from '@/lib/theme';
 import { useCropDraftStore } from '@/store/cropDraftStore';
 
 export default function SelectVideoScreen() {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const setSource = useCropDraftStore((s) => s.setSource);
@@ -33,9 +35,7 @@ export default function SelectVideoScreen() {
       const asset = result.assets[0];
       const duration = (asset.duration ?? 0) / 1000;
       if (asset.duration != null && duration < MIN_SOURCE_DURATION) {
-        setError(
-          `That video is too short. Pick one that’s at least ${MIN_SOURCE_DURATION} second long.`,
-        );
+        setError(t('crop.tooShort', { seconds: MIN_SOURCE_DURATION }));
         return;
       }
 
@@ -48,7 +48,8 @@ export default function SelectVideoScreen() {
       });
       router.push('/crop/trim');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not open your video library.');
+      console.warn('Video picker failed', e);
+      setError(t('crop.libraryError'));
     } finally {
       setIsPicking(false);
     }
@@ -69,14 +70,13 @@ export default function SelectVideoScreen() {
           entering={FadeInDown.delay(80).duration(400)}
           className="mb-3 text-center text-2xl font-bold text-ink dark:text-white"
         >
-          Pick a video
+          {t('crop.pickTitle')}
         </Animated.Text>
         <Animated.Text
           entering={FadeInDown.delay(160).duration(400)}
           className="text-center text-base leading-6 text-ink-muted"
         >
-          Choose any video from your library. Next, you&apos;ll select the {CLIP_DURATION} seconds
-          you want to keep.
+          {t('crop.pickMessage', { seconds: CLIP_DURATION })}
         </Animated.Text>
         {error ? (
           <Text className="mt-6 text-center text-sm text-red-600 dark:text-red-400">{error}</Text>
@@ -85,7 +85,7 @@ export default function SelectVideoScreen() {
 
       <View className="px-5">
         <Button
-          title="Choose from library"
+          title={t('crop.chooseFromLibrary')}
           icon="images-outline"
           loading={isPicking}
           onPress={pickVideo}

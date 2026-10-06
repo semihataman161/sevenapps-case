@@ -1,4 +1,4 @@
-import { NAME_MAX_LENGTH } from '../constants';
+import { DESCRIPTION_MAX_LENGTH, NAME_MAX_LENGTH } from '../constants';
 import { metadataSchema } from '../validation';
 
 describe('metadataSchema', () => {
@@ -17,12 +17,13 @@ describe('metadataSchema', () => {
   });
 
   it.each([
-    [{ name: '' }, 'Give your clip a name'],
-    [{ name: '   ' }, 'Give your clip a name'],
-    [{ name: 'a' }, 'Name must be at least 2 characters'],
+    [{ name: '' }, 'validation.nameRequired'],
+    [{ name: '   ' }, 'validation.nameRequired'],
+    [{ name: 'a' }, 'validation.nameMin'],
+    [{ name: 'a'.repeat(NAME_MAX_LENGTH + 1) }, 'validation.nameMax'],
     [
-      { name: 'a'.repeat(NAME_MAX_LENGTH + 1) },
-      `Name must be at most ${NAME_MAX_LENGTH} characters`,
+      { name: 'Ok', description: 'x'.repeat(DESCRIPTION_MAX_LENGTH + 1) },
+      'validation.descriptionMax',
     ],
   ])('rejects %j', async (input, message) => {
     await expect(metadataSchema.validate(input)).rejects.toThrow(message);

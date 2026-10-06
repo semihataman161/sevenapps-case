@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEvent } from 'expo';
 import { Redirect, router, useIsFocused } from 'expo-router';
 import { useVideoPlayer } from 'expo-video';
-import { useCallback, useEffect, useEffectEvent, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
+import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -16,6 +17,11 @@ import { segmentBounds } from '@/lib/time';
 import { useCropDraftStore } from '@/store/cropDraftStore';
 import type { SourceVideo } from '@/types/video';
 
+const TIME_UPDATE_INTERVAL = 0.1;
+const LOOP_LEAD = Platform.OS === 'android' ? 0.07 : 1 / 60;
+const MAX_LOOKAHEAD = 0.15;
+const SEEK_SETTLE_MS = 150;
+
 export default function TrimScreen() {
   const source = useCropDraftStore((s) => s.source);
   if (!source) return <Redirect href="/crop" />;
@@ -23,13 +29,14 @@ export default function TrimScreen() {
 }
 
 function TrimEditor({ source }: { source: SourceVideo }) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const start = useCropDraftStore((s) => s.start);
   const setStart = useCropDraftStore((s) => s.setStart);
   const setDuration = useCropDraftStore((s) => s.setDuration);
 
   const player = useVideoPlayer(source.uri, (p) =>
-    configurePlayer(p, { loop: false, timeUpdateEventInterval: 0.1 }),
+    configurePlayer(p, { loop: false, timeUpdateEventInterval: TIME_UPDATE_INTERVAL }),
   );
   const { status } = useEvent(player, 'statusChange', { status: player.status });
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
@@ -51,27 +58,45 @@ function TrimEditor({ source }: { source: SourceVideo }) {
   }, [player, setDuration]);
   const ready = loaded && source.duration > 0;
 
-  const onTimeUpdate = useEffectEvent((currentTime: number) => {
-    if (currentTime >= bounds.end || currentTime < bounds.start - 0.25)
+  const lastCheck = useRef({ at: 0, loopedAt: 0 });
+  const keepInSegment = useEffectEvent(() => {
+    const now = performance.now();
+    const check = lastCheck.current;
+    const sinceLastCheck = check.at ? (now - check.at) / 1000 : 1 / 60;
+    check.at = now;
+    if (now - check.loopedAt < SEEK_SETTLE_MS) return;
+
+    const position = player.currentTime;
+    const nextPosition = position + Math.min(sinceLastCheck, MAX_LOOKAHEAD) * player.playbackRate;
+    if (nextPosition >= bounds.end - LOOP_LEAD || position < bounds.start - 0.25) {
+      check.loopedAt = now;
       seekTo(player, bounds.start);
+    }
   });
   const onPlayToEnd = useEffectEvent(() => {
     seekTo(player, bounds.start);
     player.play();
   });
   useEffect(() => {
-    const subscriptions = [
-      player.addListener('timeUpdate', ({ currentTime }) => onTimeUpdate(currentTime)),
-      player.addListener('playToEnd', () => onPlayToEnd()),
-    ];
-    return () => subscriptions.forEach((subscription) => subscription.remove());
+    const subscription = player.addListener('playToEnd', () => onPlayToEnd());
+    return () => subscription.remove();
   }, [player]);
+
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (!isPlaying || !isFocused) return;
+    lastCheck.current.at = 0;
+    let frame = requestAnimationFrame(function tick() {
+      keepInSegment();
+      frame = requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isPlaying, isFocused]);
 
   const startPreview = useEffectEvent(() => {
     seekTo(player, bounds.start);
     player.play();
   });
-  const isFocused = useIsFocused();
   useEffect(() => {
     if (!ready || !isFocused) return;
     startPreview();
@@ -101,7 +126,10 @@ function TrimEditor({ source }: { source: SourceVideo }) {
     <View className="flex-1" style={{ paddingBottom: insets.bottom + 16 }}>
       <StepIndicator step={1} />
       <ScrollView contentContainerClassName="px-5 pt-2 pb-6" bounces={false}>
-        <Pressable onPress={togglePlayback} accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
+        <Pressable
+          onPress={togglePlayback}
+          accessibilityLabel={isPlaying ? t('crop.pause') : t('crop.play')}
+        >
           <VideoFrame
             player={player}
             nativeControls={false}
@@ -123,7 +151,7 @@ function TrimEditor({ source }: { source: SourceVideo }) {
 
         {status === 'error' ? (
           <Text className="mt-4 text-center text-sm text-red-600 dark:text-red-400">
-            This video can&apos;t be played. Go back and pick another one.
+            {t('crop.playbackError')}
           </Text>
         ) : null}
 
@@ -141,7 +169,7 @@ function TrimEditor({ source }: { source: SourceVideo }) {
 
       <View className="px-5">
         <Button
-          title="Next"
+          title={t('common.next')}
           icon="arrow-forward"
           disabled={!ready}
           onPress={() => router.push('/crop/details')}

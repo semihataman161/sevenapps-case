@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { formatDate, formatTime } from '@/lib/time';
@@ -17,6 +18,7 @@ type VideoCardProps = {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 function VideoCardComponent({ video, onPress }: VideoCardProps) {
+  const { t, i18n } = useTranslation();
   const colors = useThemeColors();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
@@ -25,7 +27,7 @@ function VideoCardComponent({ video, onPress }: VideoCardProps) {
   return (
     <AnimatedPressable
       accessibilityRole="button"
-      accessibilityLabel={`Open ${video.name}`}
+      accessibilityLabel={t('list.openClip', { name: video.name })}
       onPress={() => onPress(video.id)}
       onPressIn={() => scale.set(withSpring(0.98, { duration: 150 }))}
       onPressOut={() => scale.set(withSpring(1, { duration: 200 }))}
@@ -60,7 +62,9 @@ function VideoCardComponent({ video, onPress }: VideoCardProps) {
             {video.description}
           </Text>
         ) : null}
-        <Text className="mt-1.5 text-xs text-ink-muted">{formatDate(video.createdAt)}</Text>
+        <Text className="mt-1.5 text-xs text-ink-muted">
+          {formatDate(video.createdAt, i18n.language)}
+        </Text>
       </View>
 
       <Ionicons name="chevron-forward" size={18} color={colors.muted} />

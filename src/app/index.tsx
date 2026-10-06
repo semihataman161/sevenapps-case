@@ -1,13 +1,17 @@
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { router, Stack } from 'expo-router';
 import { useCallback } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { VideoCard } from '@/components/VideoCard';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { CLIP_DURATION } from '@/lib/constants';
+import { useThemeColors } from '@/lib/theme';
 import { useVideo, useVideoStore } from '@/store/videoStore';
 
 function openVideo(id: string) {
@@ -18,15 +22,20 @@ function openCropModal() {
   router.push('/crop');
 }
 
+function openSettings() {
+  router.push('/settings');
+}
+
 function VideoRow({ id }: { id: string }) {
   const video = useVideo(id);
   return video ? <VideoCard video={video} onPress={openVideo} /> : null;
 }
 
 export default function VideoListScreen() {
+  const { t } = useTranslation();
+  const colors = useThemeColors();
   const ids = useVideoStore((s) => s.ids);
   const status = useVideoStore((s) => s.status);
-  const error = useVideoStore((s) => s.error);
   const hydrate = useVideoStore((s) => s.hydrate);
   const insets = useSafeAreaInsets();
 
@@ -42,6 +51,20 @@ export default function VideoListScreen() {
 
   return (
     <View className="flex-1 bg-surface dark:bg-surface-dark">
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Pressable
+              onPress={openSettings}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('nav.settings')}
+            >
+              <Ionicons name="settings-outline" size={24} color={colors.accent} />
+            </Pressable>
+          ),
+        }}
+      />
       <FlashList
         data={ids}
         keyExtractor={(id) => id}
@@ -52,16 +75,16 @@ export default function VideoListScreen() {
           status === 'error' ? (
             <EmptyState
               icon="alert-circle-outline"
-              title="Couldn't load your diary"
-              message={error ?? 'Something went wrong while reading your saved clips.'}
-              action={<Button title="Try again" variant="secondary" onPress={hydrate} />}
+              title={t('list.errorTitle')}
+              message={t('list.errorMessage')}
+              action={<Button title={t('common.tryAgain')} variant="secondary" onPress={hydrate} />}
             />
           ) : (
             <EmptyState
               icon="videocam-outline"
-              title="No clips yet"
-              message="Import a video, pick your favourite 5 seconds and keep it here with a note."
-              action={<Button title="Crop your first clip" icon="add" onPress={openCropModal} />}
+              title={t('list.emptyTitle')}
+              message={t('list.emptyMessage', { seconds: CLIP_DURATION })}
+              action={<Button title={t('list.emptyAction')} icon="add" onPress={openCropModal} />}
             />
           )
         }
@@ -74,7 +97,7 @@ export default function VideoListScreen() {
           style={{ bottom: insets.bottom + 12 }}
         >
           <Button
-            title="New clip"
+            title={t('list.newClip')}
             icon="add"
             onPress={openCropModal}
             className="shadow-lg shadow-accent/30"

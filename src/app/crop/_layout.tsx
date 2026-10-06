@@ -1,11 +1,15 @@
 import { router, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, Pressable, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
+
+import { CLIP_DURATION } from '@/lib/constants';
 
 import { useThemeColors } from '@/lib/theme';
 import { useCropDraftStore } from '@/store/cropDraftStore';
 
 export default function CropLayout() {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   const reset = useCropDraftStore((s) => s.reset);
 
@@ -19,27 +23,30 @@ export default function CropLayout() {
         headerShadowVisible: false,
         headerStyle: { backgroundColor: colors.background },
         contentStyle: { backgroundColor: colors.background },
-        headerBackTitle: 'Back',
+        headerBackTitle: t('common.back'),
       }}
     >
       <Stack.Screen
         name="index"
         options={{
-          title: 'New clip',
+          title: t('nav.newClip'),
           headerLeft: () => (
             <Pressable
               onPress={() => router.back()}
               hitSlop={12}
               accessibilityRole="button"
-              style={{ marginRight: Platform.OS === 'android' ? 16 : 0 }}
+              style={Platform.OS === 'android' ? { marginRight: 16 } : { paddingHorizontal: 6 }}
             >
-              <Text style={{ color: colors.accent, fontSize: 17 }}>Cancel</Text>
+              <Text style={{ color: colors.accent, fontSize: 17 }}>{t('common.cancel')}</Text>
             </Pressable>
           ),
         }}
       />
-      <Stack.Screen name="trim" options={{ title: 'Choose 5 seconds' }} />
-      <Stack.Screen name="details" options={{ title: 'Add details' }} />
+      <Stack.Screen
+        name="trim"
+        options={{ title: t('nav.chooseSeconds', { seconds: CLIP_DURATION }) }}
+      />
+      <Stack.Screen name="details" options={{ title: t('nav.addDetails') }} />
     </Stack>
   );
 }
