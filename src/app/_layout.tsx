@@ -6,9 +6,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useColorScheme } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { HeaderBackButton } from '@/components/specifics';
 import { queryClient, useThemeColors } from '@/lib';
 import { initPreferences, registerCssInterop } from '@/setup';
 import { useVideoStore } from '@/store';
@@ -58,27 +59,28 @@ function RootNavigator() {
           headerShadowVisible: false,
           headerStyle: { backgroundColor: colors.background },
           contentStyle: { backgroundColor: colors.background },
+          headerBackTitle: t('common.back'),
+          headerLeft:
+            Platform.OS === 'android'
+              ? ({ canGoBack }) => <HeaderBackButton canGoBack={canGoBack} />
+              : undefined,
         }}
       >
         <Stack.Screen
           name="index"
-          options={{
-            title: t('nav.diary'),
-            headerLargeTitle: true,
-            headerLargeTitleShadowVisible: false,
-          }}
+          options={{ title: t('nav.diary'), headerTitleAlign: 'center' }}
         />
-        <Stack.Screen
-          name="video/[id]/index"
-          options={{ title: '', headerBackTitle: t('nav.diaryBack') }}
-        />
+        <Stack.Screen name="video/[id]/index" options={{ title: '' }} />
         <Stack.Screen
           name="video/[id]/edit"
           options={{ presentation: 'modal', title: t('nav.editDetails') }}
         />
         <Stack.Screen
           name="settings"
-          options={{ title: t('nav.settings'), headerBackTitle: t('nav.diaryBack') }}
+          options={{
+            title: t('nav.settings'),
+            headerTitleAlign: 'center',
+          }}
         />
       </Stack>
       <StatusBar style="auto" />

@@ -9,8 +9,7 @@ export type CropModalRef = {
 
 export type CropModalProps = Omit<
   SheetProps,
-  'children' | 'visible' | 'dismissible' | 'onRequestClose'
+  'children' | 'visible' | 'dismissible' | 'header' | 'onClose' | 'onBackPress'
 > & {
   ref?: Ref<CropModalRef>;
-  onSaved?: (videoId: string) => void;
 };

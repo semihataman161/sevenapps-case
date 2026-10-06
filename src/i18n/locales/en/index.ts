@@ -9,7 +9,6 @@ const en = {
   },
   nav: {
     diary: 'Video Diary',
-    diaryBack: 'Diary',
     editDetails: 'Edit details',
     settings: 'Settings',
     newClip: 'New clip',

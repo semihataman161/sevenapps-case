@@ -1,7 +1,7 @@
 import type { CropStep } from '../../StepIndicator';
 
-export type CropStepsProps = {
+export type StepsProps = {
   step: CropStep;
   onStepChange: (step: CropStep) => void;
-  onSaved: (videoId: string) => void;
+  onComplete: () => void;
 };

@@ -8,14 +8,14 @@ import { describeCropError } from '@/services';
 import { useCropDraftStore } from '@/store';
 
 import { Icon, KeyboardAwareScroll, Row, Typography } from '@/components/commons';
-import { MetadataForm } from '../../MetadataForm';
+import { MetadataForm } from '../../../MetadataForm';
 import type { DetailsStepProps } from './types';
 
 export type * from './types';
 
 export function DetailsStep({
   source,
-  onSaved,
+  onComplete,
   contentContainerClassName = 'px-5 pb-12 pt-3',
   ...props
 }: DetailsStepProps) {
@@ -29,9 +29,9 @@ export function DetailsStep({
     cropMutation.mutate(
       { source, start, metadata },
       {
-        onSuccess: (video) => {
+        onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-          onSaved(video.id);
+          onComplete();
         },
       },
     );

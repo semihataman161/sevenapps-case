@@ -11,7 +11,6 @@ const es: Translation = {
   },
   nav: {
     diary: 'Diario de vídeo',
-    diaryBack: 'Diario',
     editDetails: 'Editar detalles',
     settings: 'Ajustes',
     newClip: 'Nuevo clip',

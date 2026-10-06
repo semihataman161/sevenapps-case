@@ -11,6 +11,7 @@ export type * from './types';
 
 export function useCropVideoMutation() {
   const add = useVideoStore((s) => s.add);
+
   return useMutation({
     mutationKey: ['videos', 'crop'],
     mutationFn: (input: CropVideoInput) => cropVideo(input),
@@ -20,6 +21,7 @@ export function useCropVideoMutation() {
 
 export function useUpdateVideoMutation(id: string) {
   const updateMetadata = useVideoStore((s) => s.updateMetadata);
+
   return useMutation({
     mutationKey: ['videos', 'update', id],
     mutationFn: async (metadata: VideoMetadata): Promise<UpdateVideoResult> => {
@@ -34,6 +36,7 @@ export function useUpdateVideoMutation(id: string) {
 
 export function useDeleteVideoMutation() {
   const remove = useVideoStore((s) => s.remove);
+
   return useMutation({
     mutationKey: ['videos', 'delete'],
     mutationFn: async (video: DiaryVideo) => {

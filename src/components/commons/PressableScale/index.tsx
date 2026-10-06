@@ -9,22 +9,30 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function PressableScale({
   pressedScale = 0.98,
+  pressedOpacity = 1,
   style,
   onPressIn,
   onPressOut,
   ...props
 }: PressableScaleProps) {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
+  const pressed = useSharedValue(0);
+  const animatesOpacity = pressedOpacity < 1;
+  const animatedStyle = useAnimatedStyle(() => {
+    const progress = pressed.get();
+    const transform = [{ scale: 1 + (pressedScale - 1) * progress }];
+    return animatesOpacity
+      ? { transform, opacity: 1 + (pressedOpacity - 1) * progress }
+      : { transform };
+  });
 
   return (
     <AnimatedPressable
       onPressIn={(event) => {
-        scale.set(withSpring(pressedScale, { duration: 150 }));
+        pressed.set(withSpring(1, { duration: 150 }));
         onPressIn?.(event);
       }}
       onPressOut={(event) => {
-        scale.set(withSpring(1, { duration: 200 }));
+        pressed.set(withSpring(0, { duration: 200 }));
         onPressOut?.(event);
       }}
       style={[animatedStyle, style]}

@@ -12,7 +12,7 @@ Built for the SevenApps React Native case study.
 | --- | --- |
 | **Clip list** (`/`) | Persistent list of cropped clips with poster thumbnails, duration badge and date. Tap to open. Empty and error states. |
 | **Details** (`/video/[id]`) | Plays the clip (native controls, looping) with its name, description, date and length. Edit and delete actions. |
-| **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet, Android full-screen slide) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a filmstrip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
+| **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet; on Android a bottom sheet over a dimmed backdrop that closes when dragged down) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a filmstrip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
 | **Cropping** | `trimVideo` from `expo-trim-video`, run through a TanStack Query mutation. |
 | **Edit** (`/video/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
 | **Settings** (`/settings`) | Gear icon on the clip list. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
@@ -71,7 +71,7 @@ If CocoaPods fails with a Unicode/encoding error, run with a UTF-8 locale:
 3. Drag the purple frame along the filmstrip, or tap the strip to jump. The preview loops the
    selected 5 seconds. Tap the video to pause/play. Tap **Next**.
 4. Enter a name (required, 2–60 chars) and an optional description (≤ 500 chars), then
-   **Crop & save**. You land on the new clip's details page.
+   **Crop & save**. The modal closes and the new clip appears at the top of the list.
 5. From details, use **Edit details** to change the text, or **Delete clip**.
 6. Tap the gear icon on the clip list to open **Settings** and change the theme or language.
 
@@ -142,14 +142,13 @@ nothing about video diaries, and can be used in very different places:
 | `Section` | Group with an optional heading |
 | `Badge` | Small pill label (`accent` or `overlay`) |
 | `IconBadge` | Icon in a tinted circle |
-| `PressableScale` | Pressable with a scale-down press animation |
-| `Button` | `PressableScale` + `Icon` + `Typography` in three variants |
+| `PressableScale` | Pressable with a scale (and optional fade) press animation |
+| `Button` | `PressableScale` + `Icon` + `Typography` in four variants: `primary`, `secondary`, `danger` (boxed, scale on press) and `text` (no box, fades on press, e.g. Back) |
 | `Input` | Styled text input with an `invalid` state |
 | `FormField` | Label, optional counter and error message around any input |
 | `KeyboardAwareScroll` | Scroll view that keeps inputs above the keyboard |
-| `Sheet` | `Modal` presented as an iOS page sheet / Android full-screen slide, with gesture root and safe areas |
+| `Sheet` | `Modal` presented as an iOS page sheet / an Android bottom sheet (dimmed backdrop, grabber, drag down to close). Takes `onClose`, optional `onBackPress` and a `header` that is also the drag handle |
 | `Header` | Title with optional `left` / `right` slots |
-| `TextButton` | Plain text (optionally with an icon) pressable, e.g. Cancel / Back |
 | `VideoFrame` | Rounded, letterboxed surface for an `expo-video` player |
 
 Commons don't import app data (`store`, `services`, `hooks`, `db`) and never import specifics.
@@ -170,9 +169,9 @@ commons:
 | `VideoCard` / `VideoRow` | `PressableScale` + `Card` + `Row` + `Badge` + `Typography` + `Icon` |
 | `MetadataForm` | `Stack` + `FormField` + `Input` + `Button` (react-hook-form + Yup) |
 | `StepIndicator` | `Row` + `Typography` |
+| `HeaderBackButton` | `Button` (`text` variant) + `router.back()`; Android header back button with a "Back" label (iOS keeps the native one with `headerBackTitle`) |
 | `TrimScrubber` | `Row` + `Badge` + `Typography` (+ its own gesture parts) |
-| `TrimEditor` | `VideoFrame` + `Icon` + `Typography` + `Button` + `TrimScrubber` |
-| `CropModal` | `Sheet` + `Header` + `TextButton` + `StepIndicator`, with its steps `SourcePicker`, `TrimEditor`, `DetailsStep` |
+| `CropModal` | `Sheet` + `Header` + `Button` + `StepIndicator`; its steps live in `CropModal/Steps`: `PickerStep`, `TrimStep` (`VideoFrame` + `TrimScrubber` + `Button`), `DetailsStep` (`MetadataForm`) |
 
 Screens in `src/app/` can use both. Every component extends the props of what it wraps
 (`ViewProps`, `TextProps`, `PressableProps`, `TextInputProps`, or another component's props)

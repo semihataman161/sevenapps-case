@@ -1,18 +1,17 @@
 import { useIsMutating } from '@tanstack/react-query';
 import { useImperativeHandle, useState } from 'react';
-import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { CLIP_DURATION } from '@/lib';
 
-import { Header, Sheet, TextButton } from '@/components/commons';
+import { Button, Header, Sheet } from '@/components/commons';
 import { StepIndicator, type CropStep } from '../StepIndicator';
-import { CropSteps } from './CropSteps';
+import { Steps } from './Steps';
 import type { CropModalProps, CropModalRef } from './types';
 
 export type * from './types';
 
-export function CropModal({ ref, onSaved, ...props }: CropModalProps) {
+export function CropModal({ ref, ...props }: CropModalProps) {
   const { t } = useTranslation();
   const isCropping = useIsMutating({ mutationKey: ['videos', 'crop'] }) > 0;
   const [isVisible, setIsVisible] = useState(false);
@@ -39,41 +38,42 @@ export function CropModal({ ref, onSaved, ...props }: CropModalProps) {
     if (!isCropping && step > 0) setStep((step - 1) as CropStep);
   };
 
-  const handleRequestClose = () => {
-    if (Platform.OS === 'android' && step > 0) goBack();
+  const handleBackPress = () => {
+    if (step > 0) goBack();
     else hide();
   };
 
-  const handleSaved = (videoId: string) => {
-    setIsVisible(false);
-    onSaved?.(videoId);
-  };
+  const handleComplete = () => setIsVisible(false);
+
+  const header = (
+    <Header
+      title={titles[step]}
+      left={
+        step > 0 ? (
+          <Button
+            variant="text"
+            title={t('common.back')}
+            icon="chevron-back"
+            disabled={isCropping}
+            onPress={goBack}
+            className="-ml-1.5"
+          />
+        ) : null
+      }
+    />
+  );
 
   return (
     <Sheet
       visible={isVisible}
       dismissible={!isCropping}
-      onRequestClose={handleRequestClose}
+      header={header}
+      onClose={hide}
+      onBackPress={handleBackPress}
       {...props}
     >
-      <Header
-        title={titles[step]}
-        left={
-          step === 0 ? (
-            <TextButton title={t('common.cancel')} onPress={hide} />
-          ) : (
-            <TextButton
-              title={t('common.back')}
-              icon="chevron-back"
-              disabled={isCropping}
-              onPress={goBack}
-              className="-ml-1.5"
-            />
-          )
-        }
-      />
       <StepIndicator step={step} />
-      <CropSteps step={step} onStepChange={setStep} onSaved={handleSaved} />
+      <Steps step={step} onStepChange={setStep} onComplete={handleComplete} />
     </Sheet>
   );
 }

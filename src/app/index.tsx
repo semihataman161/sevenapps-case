@@ -101,7 +101,7 @@ export default function VideoListScreen() {
         </Animated.View>
       ) : null}
 
-      <CropModal ref={cropModalRef} onSaved={openVideo} />
+      <CropModal ref={cropModalRef} />
     </View>
   );
 }

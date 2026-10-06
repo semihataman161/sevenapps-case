@@ -13,6 +13,5 @@ export * from './Row';
 export * from './Section';
 export * from './Sheet';
 export * from './Stack';
-export * from './TextButton';
 export * from './Typography';
 export * from './VideoFrame';

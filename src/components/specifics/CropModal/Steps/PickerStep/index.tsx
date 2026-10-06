@@ -8,11 +8,11 @@ import { CLIP_DURATION, MIN_SOURCE_DURATION } from '@/lib';
 import { useCropDraftStore } from '@/store';
 
 import { Button, Icon, Typography } from '@/components/commons';
-import type { SourcePickerProps } from './types';
+import type { PickerStepProps } from './types';
 
 export type * from './types';
 
-export function SourcePicker({ onPicked, className = '', ...props }: SourcePickerProps) {
+export function PickerStep({ onPicked, className = '', ...props }: PickerStepProps) {
   const { t } = useTranslation();
   const setSource = useCropDraftStore((s) => s.setSource);
   const [isPicking, setIsPicking] = useState(false);

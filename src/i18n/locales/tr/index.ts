@@ -11,7 +11,6 @@ const tr: Translation = {
   },
   nav: {
     diary: 'Video Günlüğü',
-    diaryBack: 'Günlük',
     editDetails: 'Detayları düzenle',
     settings: 'Ayarlar',
     newClip: 'Yeni klip',

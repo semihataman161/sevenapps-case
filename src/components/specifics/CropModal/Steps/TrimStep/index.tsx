@@ -10,8 +10,8 @@ import { configurePlayer, pauseSafely, seekTo, segmentBounds, useThemeColors } f
 import { useCropDraftStore } from '@/store';
 
 import { Button, Icon, Typography, VideoFrame } from '@/components/commons';
-import { TrimScrubber } from '../TrimScrubber';
-import type { TrimEditorProps } from './types';
+import { TrimScrubber } from '../../../TrimScrubber';
+import type { TrimStepProps } from './types';
 
 export type * from './types';
 
@@ -21,7 +21,7 @@ const MAX_LOOKAHEAD = 0.15;
 const SEEK_SETTLE_MS = 150;
 const FRAME_COUNT = 8;
 
-export function TrimEditor({ source, onNext, className = '', ...props }: TrimEditorProps) {
+export function TrimStep({ source, onNext, className = '', ...props }: TrimStepProps) {
   const { t } = useTranslation();
   const colors = useThemeColors();
   const start = useCropDraftStore((s) => s.start);

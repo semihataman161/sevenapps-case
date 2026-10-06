@@ -1,6 +1,6 @@
 import type { ViewProps } from 'react-native';
 
-export type SourcePickerProps = ViewProps & {
+export type PickerStepProps = ViewProps & {
   onPicked: () => void;
   className?: string;
 };
