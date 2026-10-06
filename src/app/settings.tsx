@@ -3,14 +3,9 @@ import * as Haptics from 'expo-haptics';
 import { ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { InfoRow, OptionRow, SettingsSection } from '@/components/SettingsList';
-import { getDeviceLanguage } from '@/i18n';
-import { NATIVE_LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from '@/i18n/languages';
-import {
-  useSettingsStore,
-  type LanguagePreference,
-  type ThemePreference,
-} from '@/store/settingsStore';
+import { InfoRow, OptionRow, SettingsSection } from '@/components';
+import { getDeviceLanguage, NATIVE_LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from '@/i18n';
+import { useSettingsStore, type LanguagePreference, type ThemePreference } from '@/store';
 
 const THEME_OPTIONS = [
   { value: 'system', icon: 'phone-portrait-outline', labelKey: 'settings.themeSystem' },

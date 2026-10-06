@@ -5,15 +5,17 @@ import { useEffect } from 'react';
 import { BackHandler, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { MetadataForm } from '@/components/MetadataForm';
-import { StepIndicator } from '@/components/StepIndicator';
-import { KeyboardAwareScroll } from '@/components/ui/KeyboardAwareScroll';
-import { useCropVideoMutation } from '@/hooks/useVideoMutations';
-import { formatSeconds, formatTime, segmentBounds } from '@/lib/time';
-import { useThemeColors } from '@/lib/theme';
-import { describeCropError } from '@/services/cropVideo';
-import { useCropDraftStore } from '@/store/cropDraftStore';
-import type { MetadataFormValues } from '@/lib/validation';
+import { KeyboardAwareScroll, MetadataForm, StepIndicator } from '@/components';
+import { useCropVideoMutation } from '@/hooks';
+import {
+  formatSeconds,
+  formatTime,
+  segmentBounds,
+  useThemeColors,
+  type MetadataFormValues,
+} from '@/lib';
+import { describeCropError } from '@/services';
+import { useCropDraftStore } from '@/store';
 
 export default function DetailsScreen() {
   const { t } = useTranslation();

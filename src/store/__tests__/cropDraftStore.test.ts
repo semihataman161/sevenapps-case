@@ -1,4 +1,4 @@
-import { useCropDraftStore } from '../cropDraftStore';
+import { useCropDraftStore } from '@/store';
 
 const source = {
   uri: 'file:///video.mov',

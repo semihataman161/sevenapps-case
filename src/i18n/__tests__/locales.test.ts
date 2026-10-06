@@ -1,8 +1,4 @@
-import { pickSupportedLanguage } from '../languages';
-import de from '../locales/de';
-import en from '../locales/en';
-import es from '../locales/es';
-import tr from '../locales/tr';
+import { de, en, es, pickSupportedLanguage, tr } from '@/i18n';
 
 type Tree = { [key: string]: string | Tree };
 

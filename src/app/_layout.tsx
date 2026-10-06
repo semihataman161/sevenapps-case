@@ -1,6 +1,4 @@
 import '@/global.css';
-import '@/i18n';
-import '@/lib/interop';
 
 import { QueryClientProvider, useIsMutating } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
@@ -11,11 +9,11 @@ import { useTranslation } from 'react-i18next';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { initPreferences } from '@/lib/preferences';
-import { queryClient } from '@/lib/queryClient';
-import { useThemeColors } from '@/lib/theme';
-import { useVideoStore } from '@/store/videoStore';
+import { queryClient, useThemeColors } from '@/lib';
+import { initPreferences, registerCssInterop } from '@/setup';
+import { useVideoStore } from '@/store';
 
+registerCssInterop();
 initPreferences();
 SplashScreen.preventAutoHideAsync();
 

@@ -92,15 +92,40 @@ src/
 │       ├── index.tsx         # Step 1 – select
 │       ├── trim.tsx          # Step 2 – scrub
 │       └── details.tsx       # Step 3 – metadata + crop
-├── components/               # VideoPlayer/VideoFrame, TrimScrubber, MetadataForm, VideoCard, ui/*
+├── components/               # UI components (TrimEditor, TrimScrubber, MetadataForm, VideoCard, ui/…)
 ├── hooks/                    # TanStack mutations, filmstrip frames
 ├── services/                 # cropVideo pipeline, file storage
-├── i18n/                     # i18next setup, supported languages, locales/{en,tr,de,es}.ts
-├── db/                       # SQLite client, migrations, repository
 ├── store/                    # Zustand: video list, crop draft, persisted settings
-├── lib/                      # constants, time math, Yup schema, theme, preferences, query client
-└── types/
+├── db/                       # SQLite client, migrations, repository
+├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
+├── lib/                      # constants, time math, Yup schema, theme, player helpers, query client
+├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
+└── types/                    # Shared domain, navigation and icon types
 ```
+
+### Folder conventions
+
+Every module lives in a folder named after it:
+
+```
+components/VideoCard/
+├── index.tsx   # the component; imports its types from ./types and re-exports them
+└── types.ts    # VideoCardProps
+```
+
+- `index.ts(x)` holds the implementation, `types.ts` its types. Modules without types have
+  only an `index`.
+- Each top-level folder has an `index.ts` barrel exporting everything inside it, so code
+  imports from the folder: `import { Button, VideoCard } from '@/components'`,
+  `import { formatTime, useThemeColors } from '@/lib'`.
+- Inside a folder, modules import each other relatively (`../VideoFrame`), never through
+  their own barrel, to avoid import cycles.
+- Subcomponents used by a single component live in its folder (e.g.
+  `TrimScrubber/Filmstrip`) and aren't exported from the barrel.
+- Layers only import downward: `types` → `lib`, `i18n`, `db` → `services` → `store` →
+  `hooks` → `components` → `setup` / `app`. There are no runtime import cycles.
+- `src/app/` is the exception: Expo Router treats every file there as a route, so route
+  files stay flat and contain no component or type declarations.
 
 ### Data flow
 
@@ -111,8 +136,8 @@ Step 3 → │ trimVideo() → move clip to documents → thumbnail → INSERT i
 App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store ──selectors──▶ screens
 ```
 
-- **SQLite is the source of truth.** All SQL lives in `db/videoRepository.ts`; schema changes
-  go through versioned migrations (`PRAGMA user_version`) in `db/migrations.ts`.
+- **SQLite is the source of truth.** All SQL lives in `db/videoRepository`; schema changes
+  go through versioned migrations (`PRAGMA user_version`) in `db/migrations`.
 - **Zustand** holds the in-memory list (`ids` + `byId`) hydrated at launch, plus the
   ephemeral crop-modal draft (`cropDraftStore`) shared by the three steps. List rows subscribe
   to their own record, so editing one clip re-renders only that row.
@@ -155,16 +180,18 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
 - **i18n**: i18next with bundled resources, initialised synchronously. "Device language" picks
   the first supported language from the device's list (falls back to English) and is
   re-checked when the app returns to the foreground (Android doesn't restart on a language
-  change). Translations are typed: every locale must match `locales/en.ts`, so a missing key
+  change). Translations are typed: every locale must match `i18n/locales/en`, so a missing key
   fails `tsc`, and a unit test checks that every locale uses the same `{{placeholders}}`.
   Validation and crop errors carry translation keys, not English text, so they're translated
   at render time. Dates are formatted for the active language.
 
 ### Adding a language
 
-1. Copy `src/i18n/locales/en.ts` to e.g. `fr.ts` and translate it (typed as `Translation`).
-2. Add the code to `SUPPORTED_LANGUAGES` and `NATIVE_LANGUAGE_NAMES` in `src/i18n/languages.ts`,
-   and register it in `resources` in `src/i18n/index.ts`.
+1. Copy `src/i18n/locales/en/` to e.g. `src/i18n/locales/fr/`, translate it (typed as
+   `Translation`) and export it from `src/i18n/locales/index.ts`.
+2. Add the code to `AppLanguage` (`src/i18n/languages/types.ts`), to `SUPPORTED_LANGUAGES` and
+   `NATIVE_LANGUAGE_NAMES` (`src/i18n/languages/index.ts`), and register it in `resources` in
+   `src/i18n/instance/index.ts`.
 3. Add a `languages.fr` name to every locale, and `fr` to `supportedLocales` of the
    `expo-localization` plugin in `app.json`.
 

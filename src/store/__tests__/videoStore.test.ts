@@ -1,12 +1,12 @@
-import type { DiaryVideo } from '@/types/video';
+import type { DiaryVideo } from '@/types';
 
-import { useVideoStore } from '../videoStore';
+import { useVideoStore } from '@/store';
 
-jest.mock('@/db/videoRepository', () => ({
+jest.mock('@/db', () => ({
   videoRepository: { getAll: jest.fn() },
 }));
 
-const { videoRepository } = jest.requireMock('@/db/videoRepository') as {
+const { videoRepository } = jest.requireMock('@/db') as {
   videoRepository: { getAll: jest.Mock };
 };
 

@@ -1,21 +1,18 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { VideoPlayer } from '@/components/VideoPlayer';
-import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { useDeleteVideoMutation } from '@/hooks/useVideoMutations';
-import { formatDate, formatSeconds } from '@/lib/time';
-import { useThemeColors } from '@/lib/theme';
-import { videoUri } from '@/services/videoFiles';
-import { useVideo } from '@/store/videoStore';
+import { Button, EmptyState, MetaItem, VideoPlayer } from '@/components';
+import { useDeleteVideoMutation } from '@/hooks';
+import { formatDate, formatSeconds } from '@/lib';
+import { videoUri } from '@/services';
+import { useVideo } from '@/store';
+import type { IdRouteParams } from '@/types';
 
 export default function VideoDetailsScreen() {
   const { t, i18n } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<IdRouteParams>();
   const video = useVideo(id);
   const deleteMutation = useDeleteVideoMutation();
 
@@ -67,8 +64,8 @@ export default function VideoDetailsScreen() {
       <Animated.View entering={FadeInDown.delay(100).duration(350)} className="mt-6">
         <Text className="text-2xl font-bold text-ink dark:text-white">{video.name}</Text>
         <View className="mt-2 flex-row items-center gap-3">
-          <Meta icon="calendar-outline" text={formatDate(video.createdAt, i18n.language)} />
-          <Meta
+          <MetaItem icon="calendar-outline" text={formatDate(video.createdAt, i18n.language)} />
+          <MetaItem
             icon="time-outline"
             text={t('video.clipLength', { duration: formatSeconds(video.duration) })}
           />
@@ -101,15 +98,5 @@ export default function VideoDetailsScreen() {
         />
       </Animated.View>
     </ScrollView>
-  );
-}
-
-function Meta({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text: string }) {
-  const colors = useThemeColors();
-  return (
-    <View className="flex-row items-center gap-1">
-      <Ionicons name={icon} size={14} color={colors.muted} />
-      <Text className="text-sm text-ink-muted">{text}</Text>
-    </View>
   );
 }

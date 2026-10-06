@@ -1,4 +1,3 @@
-import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { useCallback } from 'react';
@@ -7,12 +6,11 @@ import { useTranslation } from 'react-i18next';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { VideoCard } from '@/components/VideoCard';
-import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { CLIP_DURATION } from '@/lib/constants';
-import { useThemeColors } from '@/lib/theme';
-import { useVideo, useVideoStore } from '@/store/videoStore';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+
+import { Button, EmptyState, VideoRow } from '@/components';
+import { CLIP_DURATION, useThemeColors } from '@/lib';
+import { useVideoStore } from '@/store';
 
 function openVideo(id: string) {
   router.push({ pathname: '/video/[id]', params: { id } });
@@ -26,11 +24,6 @@ function openSettings() {
   router.push('/settings');
 }
 
-function VideoRow({ id }: { id: string }) {
-  const video = useVideo(id);
-  return video ? <VideoCard video={video} onPress={openVideo} /> : null;
-}
-
 export default function VideoListScreen() {
   const { t } = useTranslation();
   const colors = useThemeColors();
@@ -39,7 +32,10 @@ export default function VideoListScreen() {
   const hydrate = useVideoStore((s) => s.hydrate);
   const insets = useSafeAreaInsets();
 
-  const renderItem = useCallback(({ item }: { item: string }) => <VideoRow id={item} />, []);
+  const renderItem = useCallback<ListRenderItem<string>>(
+    ({ item }) => <VideoRow id={item} onPress={openVideo} />,
+    [],
+  );
 
   if (status === 'idle' || status === 'loading') {
     return (

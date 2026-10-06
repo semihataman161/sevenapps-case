@@ -7,11 +7,9 @@ import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { StepIndicator } from '@/components/StepIndicator';
-import { Button } from '@/components/ui/Button';
-import { CLIP_DURATION, MIN_SOURCE_DURATION } from '@/lib/constants';
-import { useThemeColors } from '@/lib/theme';
-import { useCropDraftStore } from '@/store/cropDraftStore';
+import { Button, StepIndicator } from '@/components';
+import { CLIP_DURATION, MIN_SOURCE_DURATION, useThemeColors } from '@/lib';
+import { useCropDraftStore } from '@/store';
 
 export default function SelectVideoScreen() {
   const { t } = useTranslation();

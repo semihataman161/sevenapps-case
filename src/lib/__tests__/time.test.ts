@@ -1,10 +1,4 @@
-import {
-  clampSegmentStart,
-  clipLengthFor,
-  formatSeconds,
-  formatTime,
-  segmentBounds,
-} from '../time';
+import { clampSegmentStart, clipLengthFor, formatSeconds, formatTime, segmentBounds } from '@/lib';
 
 describe('formatTime', () => {
   it('formats minutes and seconds, rounding to the nearest second', () => {

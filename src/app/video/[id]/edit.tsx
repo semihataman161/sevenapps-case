@@ -2,16 +2,14 @@ import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { MetadataForm } from '@/components/MetadataForm';
-import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { KeyboardAwareScroll } from '@/components/ui/KeyboardAwareScroll';
-import { useUpdateVideoMutation } from '@/hooks/useVideoMutations';
-import { useVideo } from '@/store/videoStore';
+import { Button, EmptyState, KeyboardAwareScroll, MetadataForm } from '@/components';
+import { useUpdateVideoMutation } from '@/hooks';
+import { useVideo } from '@/store';
+import type { IdRouteParams } from '@/types';
 
 export default function EditVideoScreen() {
   const { t } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<IdRouteParams>();
   const video = useVideo(id);
   const updateMutation = useUpdateVideoMutation(id);
 

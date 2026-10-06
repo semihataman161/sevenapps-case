@@ -1,7 +1,7 @@
-import { cropVideo, describeCropError } from '../cropVideo';
+import { cropVideo, describeCropError } from '@/services';
 
 jest.mock('expo-trim-video', () => ({ trimVideo: jest.fn() }));
-jest.mock('@/db/videoRepository', () => ({ videoRepository: { insert: jest.fn() } }));
+jest.mock('@/db', () => ({ videoRepository: { insert: jest.fn() } }));
 jest.mock('../videoFiles', () => ({
   persistClip: jest.fn(async (_uri: string, id: string) => `${id}.mp4`),
   createThumbnail: jest.fn(async (_uri: string, id: string) => `${id}.jpg`),
@@ -10,7 +10,7 @@ jest.mock('../videoFiles', () => ({
 }));
 
 const { trimVideo } = jest.requireMock('expo-trim-video') as { trimVideo: jest.Mock };
-const { videoRepository } = jest.requireMock('@/db/videoRepository') as {
+const { videoRepository } = jest.requireMock('@/db') as {
   videoRepository: { insert: jest.Mock };
 };
 const files = jest.requireMock('../videoFiles') as { deleteFiles: jest.Mock };

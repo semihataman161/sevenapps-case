@@ -1,5 +1,4 @@
-import { DESCRIPTION_MAX_LENGTH, NAME_MAX_LENGTH } from '../constants';
-import { metadataSchema } from '../validation';
+import { DESCRIPTION_MAX_LENGTH, metadataSchema, NAME_MAX_LENGTH } from '@/lib';
 
 describe('metadataSchema', () => {
   it('accepts a valid name with an optional description', async () => {

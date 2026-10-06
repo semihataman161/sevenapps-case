@@ -3,10 +3,8 @@ import { useEffect } from 'react';
 import { Platform, Pressable, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { CLIP_DURATION } from '@/lib/constants';
-
-import { useThemeColors } from '@/lib/theme';
-import { useCropDraftStore } from '@/store/cropDraftStore';
+import { CLIP_DURATION, useThemeColors } from '@/lib';
+import { useCropDraftStore } from '@/store';
 
 export default function CropLayout() {
   const { t } = useTranslation();
