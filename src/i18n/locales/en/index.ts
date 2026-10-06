@@ -47,6 +47,7 @@ const en = {
     chooseFromLibrary: 'Choose from library',
     tooShort: "That video is too short. Pick one that's at least {{seconds}} second long.",
     libraryError: 'Could not open your video library.',
+    preparing: 'Preparing your video…',
     playbackError: "This video can't be played. Go back and pick another one.",
     play: 'Play',
     pause: 'Pause',

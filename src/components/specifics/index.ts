@@ -1,3 +1,4 @@
+export * from './CropModal';
 export * from './EmptyState';
 export * from './InfoRow';
 export * from './MetadataForm';

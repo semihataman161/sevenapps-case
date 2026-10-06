@@ -49,6 +49,7 @@ const es: Translation = {
     chooseFromLibrary: 'Elegir de la galería',
     tooShort: 'Ese vídeo es demasiado corto. Elige uno de al menos {{seconds}} segundo.',
     libraryError: 'No se pudo abrir tu galería de vídeos.',
+    preparing: 'Preparando tu vídeo…',
     playbackError: 'Este vídeo no se puede reproducir. Vuelve atrás y elige otro.',
     play: 'Reproducir',
     pause: 'Pausar',

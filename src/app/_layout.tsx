@@ -1,6 +1,6 @@
 import '@/global.css';
 
-import { QueryClientProvider, useIsMutating } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -42,7 +42,6 @@ function RootNavigator() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
   const colors = useThemeColors();
-  const isCropping = useIsMutating({ mutationKey: ['videos', 'crop'] }) > 0;
   const baseTheme = scheme === 'dark' ? DarkTheme : DefaultTheme;
 
   return (
@@ -80,10 +79,6 @@ function RootNavigator() {
         <Stack.Screen
           name="settings"
           options={{ title: t('nav.settings'), headerBackTitle: t('nav.diaryBack') }}
-        />
-        <Stack.Screen
-          name="crop"
-          options={{ presentation: 'modal', headerShown: false, gestureEnabled: !isCropping }}
         />
       </Stack>
       <StatusBar style="auto" />

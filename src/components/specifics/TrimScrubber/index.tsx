@@ -7,7 +7,6 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { Badge, Row, Typography } from '@/components/commons';
-import { useFilmstrip } from '@/hooks';
 import { useUpperCase } from '@/i18n';
 import {
   CLIP_DURATION,
@@ -26,14 +25,13 @@ import type { TrimScrubberProps } from './types';
 
 export type * from './types';
 
-const FRAME_COUNT = 8;
 const SCRUB_EVERY_N_EVENTS = 4;
 
 export function TrimScrubber({
   player,
   duration,
   start,
-  ready,
+  frames,
   onScrub,
   onChange,
 }: TrimScrubberProps) {
@@ -41,7 +39,6 @@ export function TrimScrubber({
   const upper = useUpperCase();
   const [trackWidth, setTrackWidth] = useState(0);
   const [dragStart, setDragStart] = useState<number | null>(null);
-  const frames = useFilmstrip(player, duration, FRAME_COUNT, ready);
 
   const clipLength = clipLengthFor(duration);
   const windowWidth = duration > 0 ? (trackWidth * clipLength) / duration : trackWidth;

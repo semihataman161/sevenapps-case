@@ -49,6 +49,7 @@ const tr: Translation = {
     chooseFromLibrary: 'Kütüphaneden seç',
     tooShort: 'Bu video çok kısa. En az {{seconds}} saniyelik bir video seç.',
     libraryError: 'Video kütüphanen açılamadı.',
+    preparing: 'Video hazırlanıyor…',
     playbackError: 'Bu video oynatılamıyor. Geri dönüp başka bir video seç.',
     play: 'Oynat',
     pause: 'Duraklat',

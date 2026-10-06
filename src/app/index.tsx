@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -9,16 +9,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 
 import { Button } from '@/components/commons';
-import { EmptyState, VideoRow } from '@/components/specifics';
+import { CropModal, EmptyState, VideoRow, type CropModalRef } from '@/components/specifics';
 import { CLIP_DURATION, useThemeColors } from '@/lib';
 import { useVideoStore } from '@/store';
 
 function openVideo(id: string) {
   router.push({ pathname: '/video/[id]', params: { id } });
-}
-
-function openCropModal() {
-  router.push('/crop');
 }
 
 function openSettings() {
@@ -32,6 +28,9 @@ export default function VideoListScreen() {
   const status = useVideoStore((s) => s.status);
   const hydrate = useVideoStore((s) => s.hydrate);
   const insets = useSafeAreaInsets();
+  const cropModalRef = useRef<CropModalRef>(null);
+
+  const openCropModal = () => cropModalRef.current?.show();
 
   const renderItem = useCallback<ListRenderItem<string>>(
     ({ item }) => <VideoRow id={item} onPress={openVideo} />,
@@ -101,6 +100,8 @@ export default function VideoListScreen() {
           />
         </Animated.View>
       ) : null}
+
+      <CropModal ref={cropModalRef} onSaved={openVideo} />
     </View>
   );
 }

@@ -1,17 +1,15 @@
 import { useEvent } from 'expo';
-import { router, useIsFocused } from 'expo-router';
 import { useVideoPlayer } from 'expo-video';
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
-import { Platform, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { configurePlayer, pauseSafely, seekTo, segmentBounds } from '@/lib';
+import { useFilmstrip } from '@/hooks';
+import { configurePlayer, pauseSafely, seekTo, segmentBounds, useThemeColors } from '@/lib';
 import { useCropDraftStore } from '@/store';
 
 import { Button, Icon, Typography, VideoFrame } from '@/components/commons';
-import { StepIndicator } from '../StepIndicator';
 import { TrimScrubber } from '../TrimScrubber';
 import type { TrimEditorProps } from './types';
 
@@ -21,10 +19,11 @@ const TIME_UPDATE_INTERVAL = 0.1;
 const LOOP_LEAD = Platform.OS === 'android' ? 0.07 : 1 / 60;
 const MAX_LOOKAHEAD = 0.15;
 const SEEK_SETTLE_MS = 150;
+const FRAME_COUNT = 8;
 
-export function TrimEditor({ source }: TrimEditorProps) {
+export function TrimEditor({ source, onNext, className = '', ...props }: TrimEditorProps) {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const start = useCropDraftStore((s) => s.start);
   const setStart = useCropDraftStore((s) => s.setStart);
   const setDuration = useCropDraftStore((s) => s.setDuration);
@@ -51,6 +50,8 @@ export function TrimEditor({ source }: TrimEditorProps) {
     return () => subscriptions.forEach((subscription) => subscription.remove());
   }, [player, setDuration]);
   const ready = loaded && source.duration > 0;
+  const filmstrip = useFilmstrip(player, source.duration, FRAME_COUNT, ready);
+  const isPreparing = status !== 'error' && (!ready || !filmstrip.settled);
 
   const lastCheck = useRef({ at: 0, loopedAt: 0 });
   const keepInSegment = useEffectEvent(() => {
@@ -76,26 +77,25 @@ export function TrimEditor({ source }: TrimEditorProps) {
     return () => subscription.remove();
   }, [player]);
 
-  const isFocused = useIsFocused();
   useEffect(() => {
-    if (!isPlaying || !isFocused) return;
+    if (!isPlaying) return;
     lastCheck.current.at = 0;
     let frame = requestAnimationFrame(function tick() {
       keepInSegment();
       frame = requestAnimationFrame(tick);
     });
     return () => cancelAnimationFrame(frame);
-  }, [isPlaying, isFocused]);
+  }, [isPlaying]);
 
   const startPreview = useEffectEvent(() => {
     seekTo(player, bounds.start);
     player.play();
   });
   useEffect(() => {
-    if (!ready || !isFocused) return;
+    if (!ready || isPreparing) return;
     startPreview();
     return () => pauseSafely(player);
-  }, [player, ready, isFocused]);
+  }, [player, ready, isPreparing]);
 
   const handleScrub = useCallback(
     (seconds: number) => {
@@ -116,9 +116,21 @@ export function TrimEditor({ source }: TrimEditorProps) {
 
   const togglePlayback = () => (player.playing ? player.pause() : player.play());
 
+  if (isPreparing) {
+    return (
+      <View className={`flex-1 items-center justify-center gap-4 pb-4 ${className}`} {...props}>
+        <ActivityIndicator size="large" color={colors.accent} />
+        <Typography tone="muted">{t('crop.preparing')}</Typography>
+      </View>
+    );
+  }
+
   return (
-    <View className="flex-1" style={{ paddingBottom: insets.bottom + 16 }}>
-      <StepIndicator step={1} />
+    <Animated.View
+      entering={FadeIn.duration(250)}
+      className={`flex-1 pb-4 ${className}`}
+      {...props}
+    >
       <ScrollView contentContainerClassName="px-5 pt-2 pb-6" bounces={false}>
         <Pressable
           onPress={togglePlayback}
@@ -154,7 +166,7 @@ export function TrimEditor({ source }: TrimEditorProps) {
             player={player}
             duration={source.duration}
             start={start}
-            ready={ready}
+            frames={filmstrip.frames}
             onScrub={handleScrub}
             onChange={handleChange}
           />
@@ -162,13 +174,8 @@ export function TrimEditor({ source }: TrimEditorProps) {
       </ScrollView>
 
       <View className="px-5">
-        <Button
-          title={t('common.next')}
-          icon="arrow-forward"
-          disabled={!ready}
-          onPress={() => router.push('/crop/details')}
-        />
+        <Button title={t('common.next')} icon="arrow-forward" disabled={!ready} onPress={onNext} />
       </View>
-    </View>
+    </Animated.View>
   );
 }

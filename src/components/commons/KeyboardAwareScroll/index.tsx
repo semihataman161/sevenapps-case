@@ -1,4 +1,5 @@
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Keyboard, Platform, ScrollView, View } from 'react-native';
 
 import type { KeyboardAwareScrollProps } from './types';
 
@@ -9,21 +10,30 @@ export function KeyboardAwareScroll({
   contentContainerClassName = '',
   ...props
 }: KeyboardAwareScrollProps) {
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const subscriptions = [
+      Keyboard.addListener('keyboardDidShow', (event) =>
+        setKeyboardHeight(event.endCoordinates.height),
+      ),
+      Keyboard.addListener('keyboardDidHide', () => setKeyboardHeight(0)),
+    ];
+    return () => subscriptions.forEach((subscription) => subscription.remove());
+  }, []);
+
   return (
-    <KeyboardAvoidingView
-      className="flex-1"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName={contentContainerClassName}
+      {...props}
     >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName={contentContainerClassName}
-        {...props}
-      >
-        {children}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      {children}
+      <View style={{ height: keyboardHeight }} />
+    </ScrollView>
   );
 }

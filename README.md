@@ -12,7 +12,7 @@ Built for the SevenApps React Native case study.
 | --- | --- |
 | **Clip list** (`/`) | Persistent list of cropped clips with poster thumbnails, duration badge and date. Tap to open. Empty and error states. |
 | **Details** (`/video/[id]`) | Plays the clip (native controls, looping) with its name, description, date and length. Edit and delete actions. |
-| **Crop modal** (`/crop`) | 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a filmstrip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
+| **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet, Android full-screen slide) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a filmstrip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
 | **Cropping** | `trimVideo` from `expo-trim-video`, run through a TanStack Query mutation. |
 | **Edit** (`/video/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
 | **Settings** (`/settings`) | Gear icon on the clip list. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
@@ -86,15 +86,10 @@ src/
 │   ├── index.tsx             # Clip list
 │   ├── video/[id]/index.tsx  # Details
 │   ├── video/[id]/edit.tsx   # Edit (modal)
-│   ├── settings.tsx          # Theme + language
-│   └── crop/                 # Crop modal: its own stack
-│       ├── _layout.tsx
-│       ├── index.tsx         # Step 1 – select
-│       ├── trim.tsx          # Step 2 – scrub
-│       └── details.tsx       # Step 3 – metadata + crop
+│   └── settings.tsx          # Theme + language
 ├── components/
 │   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
-│   └── specifics/            # App components composed from commons: OptionRow, VideoCard, TrimEditor, …
+│   └── specifics/            # App components composed from commons: OptionRow, VideoCard, CropModal, …
 ├── hooks/                    # TanStack mutations, filmstrip frames
 ├── services/                 # cropVideo pipeline, file storage
 ├── store/                    # Zustand: video list, crop draft, persisted settings
@@ -152,6 +147,9 @@ nothing about video diaries, and can be used in very different places:
 | `Input` | Styled text input with an `invalid` state |
 | `FormField` | Label, optional counter and error message around any input |
 | `KeyboardAwareScroll` | Scroll view that keeps inputs above the keyboard |
+| `Sheet` | `Modal` presented as an iOS page sheet / Android full-screen slide, with gesture root and safe areas |
+| `Header` | Title with optional `left` / `right` slots |
+| `TextButton` | Plain text (optionally with an icon) pressable, e.g. Cancel / Back |
 | `VideoFrame` | Rounded, letterboxed surface for an `expo-video` player |
 
 Commons don't import app data (`store`, `services`, `hooks`, `db`) and never import specifics.
@@ -173,7 +171,8 @@ commons:
 | `MetadataForm` | `Stack` + `FormField` + `Input` + `Button` (react-hook-form + Yup) |
 | `StepIndicator` | `Row` + `Typography` |
 | `TrimScrubber` | `Row` + `Badge` + `Typography` (+ its own gesture parts) |
-| `TrimEditor` | `VideoFrame` + `Icon` + `Typography` + `Button` + `StepIndicator` + `TrimScrubber` |
+| `TrimEditor` | `VideoFrame` + `Icon` + `Typography` + `Button` + `TrimScrubber` |
+| `CropModal` | `Sheet` + `Header` + `TextButton` + `StepIndicator`, with its steps `SourcePicker`, `TrimEditor`, `DetailsStep` |
 
 Screens in `src/app/` can use both. Every component extends the props of what it wraps
 (`ViewProps`, `TextProps`, `PressableProps`, `TextInputProps`, or another component's props)
@@ -192,11 +191,13 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
 - **SQLite is the source of truth.** All SQL lives in `db/videoRepository`; schema changes
   go through versioned migrations (`PRAGMA user_version`) in `db/migrations`.
 - **Zustand** holds the in-memory list (`ids` + `byId`) hydrated at launch, plus the
-  ephemeral crop-modal draft (`cropDraftStore`) shared by the three steps. List rows subscribe
-  to their own record, so editing one clip re-renders only that row.
+  ephemeral crop-modal draft (`cropDraftStore`) shared by the three steps and cleared when
+  the modal closes. List rows subscribe to their own record, so editing one clip re-renders
+  only that row.
 - **TanStack Query** runs every async write as a mutation (crop, update, delete), giving
-  pending/error state to the UI. The crop modal can't be swiped away while a crop is running
-  (`useIsMutating`). Mutations don't retry automatically since they write to disk.
+  pending/error state to the UI. The crop modal can't be swiped away, closed or stepped back
+  while a crop is running (`useIsMutating`). Mutations don't retry automatically since they
+  write to disk.
 - **Files.** The trimmer writes to a temp/cache location; the clip is moved to
   `Documents/videos/<id>.mp4` and a poster frame to `Documents/thumbnails/<id>.jpg`. Only
   **file names** go into the database, and URIs are resolved at runtime, because the iOS app
@@ -206,6 +207,10 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
 ### Notable details
 
 - **Scrubber** (`TrimScrubber`): the filmstrip comes from `player.generateThumbnailsAsync`.
+  Thumbnails are frame-accurate, so on Android a long keyframe interval makes them slow
+  (~2.3 s for 8 frames on an emulator with an 8 s GOP). The trim step shows a "Preparing your
+  video…" loader until the player is ready and the filmstrip is done, then reveals the
+  editor in one go, and only then starts the preview.
   The selection window moves on the UI thread (Gesture Handler + Reanimated) and only hops to
   JS every few pan events to seek the preview. The playhead follows `timeUpdate` events
   without re-rendering React.

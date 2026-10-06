@@ -49,6 +49,7 @@ const de: Translation = {
     chooseFromLibrary: 'Aus Mediathek wählen',
     tooShort: 'Dieses Video ist zu kurz. Wähle eines mit mindestens {{seconds}} Sekunde Länge.',
     libraryError: 'Deine Videomediathek konnte nicht geöffnet werden.',
+    preparing: 'Video wird vorbereitet…',
     playbackError: 'Dieses Video kann nicht abgespielt werden. Geh zurück und wähle ein anderes.',
     play: 'Abspielen',
     pause: 'Pausieren',

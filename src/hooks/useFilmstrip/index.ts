@@ -1,7 +1,7 @@
 import type { VideoPlayer } from 'expo-video';
 import { useEffect, useState } from 'react';
 
-import type { FilmstripFrames } from './types';
+import type { Filmstrip } from './types';
 
 export type * from './types';
 
@@ -10,8 +10,8 @@ export function useFilmstrip(
   duration: number,
   count: number,
   enabled: boolean,
-): FilmstripFrames {
-  const [frames, setFrames] = useState<FilmstripFrames>([]);
+): Filmstrip {
+  const [filmstrip, setFilmstrip] = useState<Filmstrip>({ frames: [], settled: false });
 
   useEffect(() => {
     if (!enabled || duration <= 0 || count <= 0) return;
@@ -20,14 +20,17 @@ export function useFilmstrip(
     const times = Array.from({ length: count }, (_, i) => Math.min(duration, i * step + step / 2));
     player
       .generateThumbnailsAsync(times, { maxWidth: 160 })
-      .then((result) => {
-        if (!cancelled) setFrames(result);
+      .then((frames) => {
+        if (!cancelled) setFilmstrip({ frames, settled: true });
       })
-      .catch((error) => console.warn('Filmstrip generation failed', error));
+      .catch((error) => {
+        console.warn('Filmstrip generation failed', error);
+        if (!cancelled) setFilmstrip((current) => ({ ...current, settled: true }));
+      });
     return () => {
       cancelled = true;
     };
   }, [player, duration, count, enabled]);
 
-  return frames;
+  return filmstrip;
 }
