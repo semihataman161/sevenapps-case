@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
+import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useCallback, useRef } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +24,7 @@ function openSettings() {
 
 export default function VideoListScreen() {
   const { t } = useTranslation();
+  const headerHeight = useHeaderHeight();
   const colors = useThemeColors();
   const ids = useVideoStore((s) => s.ids);
   const status = useVideoStore((s) => s.status);
@@ -61,14 +63,17 @@ export default function VideoListScreen() {
           ),
         }}
       />
-      <FlashList
-        data={ids}
-        keyExtractor={(id) => id}
-        renderItem={renderItem}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: insets.bottom + 96 }}
-        ListEmptyComponent={
-          status === 'error' ? (
+      {ids.length > 0 ? (
+        <FlashList
+          data={ids}
+          keyExtractor={(id) => id}
+          renderItem={renderItem}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{ paddingTop: 8, paddingBottom: insets.bottom + 96 }}
+        />
+      ) : (
+        <View className="flex-1 justify-center" style={{ paddingBottom: headerHeight }}>
+          {status === 'error' ? (
             <EmptyState
               icon="alert-circle-outline"
               title={t('list.errorTitle')}
@@ -82,9 +87,9 @@ export default function VideoListScreen() {
               message={t('list.emptyMessage', { seconds: CLIP_DURATION })}
               action={<Button title={t('list.emptyAction')} icon="add" onPress={openCropModal} />}
             />
-          )
-        }
-      />
+          )}
+        </View>
+      )}
 
       {ids.length > 0 ? (
         <Animated.View

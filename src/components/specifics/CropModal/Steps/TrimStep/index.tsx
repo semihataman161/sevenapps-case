@@ -131,7 +131,7 @@ export function TrimStep({ source, onNext, className = '', ...props }: TrimStepP
       className={`flex-1 pb-4 ${className}`}
       {...props}
     >
-      <ScrollView contentContainerClassName="px-5 pt-2 pb-6" bounces={false}>
+      <ScrollView contentContainerClassName="grow justify-center px-5 py-4" bounces={false}>
         <Pressable
           onPress={togglePlayback}
           accessibilityLabel={isPlaying ? t('crop.pause') : t('crop.play')}

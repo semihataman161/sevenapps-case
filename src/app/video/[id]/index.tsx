@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useHeaderHeight } from 'expo-router/react-navigation';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -13,24 +14,27 @@ import type { IdRouteParams } from '@/types';
 
 export default function VideoDetailsScreen() {
   const { t, i18n } = useTranslation();
+  const headerHeight = useHeaderHeight();
   const { id } = useLocalSearchParams<IdRouteParams>();
   const video = useVideo(id);
   const deleteMutation = useDeleteVideoMutation();
 
   if (!video) {
     return (
-      <EmptyState
-        icon="help-circle-outline"
-        title={t('video.notFoundTitle')}
-        message={t('video.notFoundMessage')}
-        action={
-          <Button
-            title={t('video.backToDiary')}
-            variant="secondary"
-            onPress={() => router.back()}
-          />
-        }
-      />
+      <View className="flex-1 justify-center" style={{ paddingBottom: headerHeight }}>
+        <EmptyState
+          icon="help-circle-outline"
+          title={t('video.notFoundTitle')}
+          message={t('video.notFoundMessage')}
+          action={
+            <Button
+              title={t('video.backToDiary')}
+              variant="secondary"
+              onPress={() => router.back()}
+            />
+          }
+        />
+      </View>
     );
   }
 
