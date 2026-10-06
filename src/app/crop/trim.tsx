@@ -1,6 +1,6 @@
 import { Redirect } from 'expo-router';
 
-import { TrimEditor } from '@/components';
+import { TrimEditor } from '@/components/specifics';
 import { useCropDraftStore } from '@/store';
 
 export default function TrimScreen() {

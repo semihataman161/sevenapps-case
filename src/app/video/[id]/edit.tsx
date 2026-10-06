@@ -2,7 +2,8 @@ import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { Button, EmptyState, KeyboardAwareScroll, MetadataForm } from '@/components';
+import { Button, KeyboardAwareScroll } from '@/components/commons';
+import { EmptyState, MetadataForm } from '@/components/specifics';
 import { useUpdateVideoMutation } from '@/hooks';
 import { useVideo } from '@/store';
 import type { IdRouteParams } from '@/types';

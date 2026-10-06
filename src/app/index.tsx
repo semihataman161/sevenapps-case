@@ -8,7 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 
-import { Button, EmptyState, VideoRow } from '@/components';
+import { Button } from '@/components/commons';
+import { EmptyState, VideoRow } from '@/components/specifics';
 import { CLIP_DURATION, useThemeColors } from '@/lib';
 import { useVideoStore } from '@/store';
 

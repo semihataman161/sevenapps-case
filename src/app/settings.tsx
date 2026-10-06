@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { InfoRow, OptionRow, SettingsSection } from '@/components';
+import { InfoRow, OptionRow, SettingsSection } from '@/components/specifics';
 import { getDeviceLanguage, NATIVE_LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from '@/i18n';
 import { useSettingsStore, type LanguagePreference, type ThemePreference } from '@/store';
 
@@ -63,6 +63,7 @@ export default function SettingsScreen() {
         {SUPPORTED_LANGUAGES.map((code) => {
           const nativeName = NATIVE_LANGUAGE_NAMES[code];
           const localizedName = t(`languages.${code}`);
+
           return (
             <OptionRow
               key={code}

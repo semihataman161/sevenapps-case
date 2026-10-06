@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, StepIndicator } from '@/components';
+import { Button } from '@/components/commons';
+import { StepIndicator } from '@/components/specifics';
 import { CLIP_DURATION, MIN_SOURCE_DURATION, useThemeColors } from '@/lib';
 import { useCropDraftStore } from '@/store';
 

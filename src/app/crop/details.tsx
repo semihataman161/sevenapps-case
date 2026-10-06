@@ -5,7 +5,8 @@ import { useEffect } from 'react';
 import { BackHandler, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { KeyboardAwareScroll, MetadataForm, StepIndicator } from '@/components';
+import { KeyboardAwareScroll } from '@/components/commons';
+import { MetadataForm, StepIndicator } from '@/components/specifics';
 import { useCropVideoMutation } from '@/hooks';
 import {
   formatSeconds,

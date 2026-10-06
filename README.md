@@ -92,7 +92,9 @@ src/
 │       ├── index.tsx         # Step 1 – select
 │       ├── trim.tsx          # Step 2 – scrub
 │       └── details.tsx       # Step 3 – metadata + crop
-├── components/               # UI components (TrimEditor, TrimScrubber, MetadataForm, VideoCard, ui/…)
+├── components/
+│   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
+│   └── specifics/            # App components composed from commons: OptionRow, VideoCard, TrimEditor, …
 ├── hooks/                    # TanStack mutations, filmstrip frames
 ├── services/                 # cropVideo pipeline, file storage
 ├── store/                    # Zustand: video list, crop draft, persisted settings
@@ -108,7 +110,7 @@ src/
 Every module lives in a folder named after it:
 
 ```
-components/VideoCard/
+components/specifics/VideoCard/
 ├── index.tsx   # the component; imports its types from ./types and re-exports them
 └── types.ts    # VideoCardProps
 ```
@@ -116,8 +118,11 @@ components/VideoCard/
 - `index.ts(x)` holds the implementation, `types.ts` its types. Modules without types have
   only an `index`.
 - Each top-level folder has an `index.ts` barrel exporting everything inside it, so code
-  imports from the folder: `import { Button, VideoCard } from '@/components'`,
-  `import { formatTime, useThemeColors } from '@/lib'`.
+  imports from the folder: `import { formatTime, useThemeColors } from '@/lib'`.
+- `components/` has no barrel of its own. Components are imported from `commons` or
+  `specifics` explicitly, so every import shows which kind it is:
+  `import { Button } from '@/components/commons'`,
+  `import { VideoCard } from '@/components/specifics'`.
 - Inside a folder, modules import each other relatively (`../VideoFrame`), never through
   their own barrel, to avoid import cycles.
 - Subcomponents used by a single component live in its folder (e.g.
@@ -126,6 +131,54 @@ components/VideoCard/
   `hooks` → `components` → `setup` / `app`. There are no runtime import cycles.
 - `src/app/` is the exception: Expo Router treats every file there as a route, so route
   files stay flat and contain no component or type declarations.
+
+### Components: commons and specifics
+
+**`components/commons/`** holds the smallest building blocks. Each one does one thing, knows
+nothing about video diaries, and can be used in very different places:
+
+| Component | Purpose |
+| --- | --- |
+| `Typography` | All text: `variant` (display, title, body, label, caption, micro, overline), `tone` (default, muted, accent, danger, inverse), `weight` |
+| `Icon` | Ionicons with a theme-aware `tone` |
+| `Row` / `Stack` | Horizontal / vertical layout with `gap`, `align`, `justify` |
+| `Card` | Rounded surface |
+| `Divider` | Hairline separator |
+| `Section` | Group with an optional heading |
+| `Badge` | Small pill label (`accent` or `overlay`) |
+| `IconBadge` | Icon in a tinted circle |
+| `PressableScale` | Pressable with a scale-down press animation |
+| `Button` | `PressableScale` + `Icon` + `Typography` in three variants |
+| `Input` | Styled text input with an `invalid` state |
+| `FormField` | Label, optional counter and error message around any input |
+| `KeyboardAwareScroll` | Scroll view that keeps inputs above the keyboard |
+| `VideoFrame` | Rounded, letterboxed surface for an `expo-video` player |
+
+Commons don't import app data (`store`, `services`, `hooks`, `db`) and never import specifics.
+Only `Typography` and `Icon` use React Native's `Text` and Ionicons directly; everything else
+goes through them.
+
+**`components/specifics/`** holds components that only make sense in this app, assembled from
+commons:
+
+| Component | Built from |
+| --- | --- |
+| `OptionRow` | `Pressable` + `Row` + `Icon` + `Typography` |
+| `InfoRow` | `Row` + `Typography` |
+| `SettingsSection` | `Section` + `Card` + `Divider` |
+| `EmptyState` | `IconBadge` + `Typography` |
+| `MetaItem` | `Row` + `Icon` + `Typography` |
+| `VideoPlayer` | `VideoFrame` + an owned `expo-video` player |
+| `VideoCard` / `VideoRow` | `PressableScale` + `Card` + `Row` + `Badge` + `Typography` + `Icon` |
+| `MetadataForm` | `Stack` + `FormField` + `Input` + `Button` (react-hook-form + Yup) |
+| `StepIndicator` | `Row` + `Typography` |
+| `TrimScrubber` | `Row` + `Badge` + `Typography` (+ its own gesture parts) |
+| `TrimEditor` | `VideoFrame` + `Icon` + `Typography` + `Button` + `StepIndicator` + `TrimScrubber` |
+
+Screens in `src/app/` can use both. Every component extends the props of what it wraps
+(`ViewProps`, `TextProps`, `PressableProps`, `TextInputProps`, or another component's props)
+and forwards the rest with `...props`, so any native prop can be passed through. A passed
+`style` is merged with the component's own style, not replaced.
 
 ### Data flow
 
@@ -167,9 +220,8 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
   from the very end. The player's precise duration replaces the picker's once loaded.
 - **Scalability**: FlashList with memoized, self-subscribing rows; `expo-image` with
   `recyclingKey` for thumbnails; an index on `created_at`.
-- **Reusable components**: `VideoPlayer` (self-contained) / `VideoFrame` (screen-driven
-  player), `MetadataForm` (used by both the crop flow and the edit screen), `Button`,
-  `EmptyState`, `StepIndicator`.
+- **Reusable components**: see *Components: commons and specifics* above. `MetadataForm` is
+  shared by the crop flow and the edit screen.
 - **Theme**: the choice is applied with NativeWind's `colorScheme.set()`, which overrides
   React Native's app-wide `Appearance`. So Tailwind `dark:` classes, `useColorScheme()`-based
   colours (headers, icons) and native UI (alerts, keyboard, video controls) all switch

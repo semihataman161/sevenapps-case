@@ -3,7 +3,8 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { Button, EmptyState, MetaItem, VideoPlayer } from '@/components';
+import { Button } from '@/components/commons';
+import { EmptyState, MetaItem, VideoPlayer } from '@/components/specifics';
 import { useDeleteVideoMutation } from '@/hooks';
 import { formatDate, formatSeconds } from '@/lib';
 import { videoUri } from '@/services';
