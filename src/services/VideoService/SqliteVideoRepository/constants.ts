@@ -11,3 +11,5 @@ export const VIDEO_COLUMNS = [
   'created_at',
   'updated_at',
 ].join(', ');
+
+export const LIKE_ESCAPE = '\\';

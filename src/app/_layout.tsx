@@ -12,9 +12,8 @@ import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { queryClient, useThemeColors } from '@/lib';
-import { videoService } from '@/services';
-import { initPreferences, registerCssInterop } from '@/setup';
-import { useVideoStore } from '@/stores';
+import { initPreferences, registerCssInterop, sweepOrphanedFilesIfDue } from '@/setup';
+import { usePick, useVideoStore } from '@/stores';
 
 registerCssInterop();
 initPreferences();
@@ -23,8 +22,7 @@ SplashScreen.preventAutoHideAsync();
 export const unstable_settings = { anchor: 'index' };
 
 export default function RootLayout() {
-  const status = useVideoStore((s) => s.status);
-  const hydrate = useVideoStore((s) => s.hydrate);
+  const { status, hydrate } = usePick(useVideoStore, ['status', 'hydrate']);
   const [fontsLoaded, fontError] = useFonts({
     DMSerifDisplay_400Regular,
     Inter_400Regular,
@@ -43,9 +41,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (status !== 'ready') return;
-    videoService
-      .removeOrphanedFiles()
-      .catch((error) => console.warn('Could not clean up orphaned files', error));
+    sweepOrphanedFilesIfDue().catch((error) =>
+      console.warn('Could not clean up orphaned files', error),
+    );
   }, [status]);
 
   if (!fontsReady) return null;

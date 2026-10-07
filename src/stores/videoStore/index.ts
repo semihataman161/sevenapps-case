@@ -11,6 +11,12 @@ function indexById(videos: VideoRecord[]): Record<string, VideoRecord> {
   return Object.fromEntries(videos.map((video) => [video.id, video]));
 }
 
+function matches(video: VideoRecord, query: string): boolean {
+  const term = query.trim().toLocaleLowerCase();
+  if (!term) return true;
+  return `${video.name}\n${video.description}`.toLocaleLowerCase().includes(term);
+}
+
 export const useVideoStore = create<VideoStore>()((set, get) => ({
   ...INITIAL_VIDEO_STATE,
 
@@ -19,7 +25,7 @@ export const useVideoStore = create<VideoStore>()((set, get) => ({
     set({ status: 'loading' });
     try {
       const [page, total] = await Promise.all([
-        videoService.listPage({ limit: PAGE_SIZE }),
+        videoService.listPage({ limit: PAGE_SIZE, search: get().query }),
         videoService.count(),
       ]);
       set({
@@ -36,11 +42,16 @@ export const useVideoStore = create<VideoStore>()((set, get) => ({
   },
 
   loadMore: async () => {
-    const { status, nextCursor, isLoadingMore } = get();
-    if (status !== 'ready' || !nextCursor || isLoadingMore) return;
+    const { status, nextCursor, isLoadingMore, isSearching, query } = get();
+    if (status !== 'ready' || !nextCursor || isLoadingMore || isSearching) return;
     set({ isLoadingMore: true });
     try {
-      const page = await videoService.listPage({ limit: PAGE_SIZE, after: nextCursor });
+      const page = await videoService.listPage({
+        limit: PAGE_SIZE,
+        after: nextCursor,
+        search: query,
+      });
+      if (get().query !== query) return;
       set((state) => ({
         ids: [
           ...state.ids,
@@ -56,12 +67,34 @@ export const useVideoStore = create<VideoStore>()((set, get) => ({
     }
   },
 
+  search: async (query) => {
+    if (query === get().query) return;
+    set({ query, isSearching: true });
+    try {
+      const page = await videoService.listPage({ limit: PAGE_SIZE, search: query });
+      if (get().query !== query) return;
+      set({
+        ids: page.videos.map((video) => video.id),
+        byId: indexById(page.videos),
+        nextCursor: page.nextCursor,
+      });
+    } catch (error) {
+      console.warn('Could not search videos', error);
+    } finally {
+      if (get().query === query) set({ isSearching: false });
+    }
+  },
+
   add: (video) =>
-    set((state) => ({
-      ids: [video.id, ...state.ids.filter((id) => id !== video.id)],
-      byId: { ...state.byId, [video.id]: video },
-      total: state.byId[video.id] ? state.total : state.total + 1,
-    })),
+    set((state) => {
+      const total = state.byId[video.id] ? state.total : state.total + 1;
+      if (!matches(video, state.query)) return { total };
+      return {
+        ids: [video.id, ...state.ids.filter((id) => id !== video.id)],
+        byId: { ...state.byId, [video.id]: video },
+        total,
+      };
+    }),
 
   updateDetails: (id, details, updatedAt) =>
     set((state) => {

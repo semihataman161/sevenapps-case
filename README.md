@@ -10,12 +10,12 @@ Built for the SevenApps React Native case study.
 
 | Area | What's there |
 | --- | --- |
-| **Clip list** (`/`) | Archive of cropped clips with a total count; each entry is a compact row (still, date, length, title, description). Tap to open. Typographic empty and error states. |
+| **Clip list** (`/`) | List of cropped clips with a total count; each entry is a compact row (still, date, length, title, description). Tap to open. Typographic empty and error states. |
 | **Details** (`/videos/[id]`) | Plays the clip (native controls, looping) with its name, description, date and length. Edit and delete actions. |
 | **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet; on Android a bottom sheet over a dimmed backdrop that closes when dragged down) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a film-strip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
 | **Cropping** | `trimVideo` from `expo-trim-video`, run through a TanStack Query mutation. |
 | **Edit** (`/videos/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
-| **Settings** (`/settings`) | Settings icon at the top right of the archive. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
+| **Settings** (`/settings`) | Settings icon at the top right of the clip list. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
 | **Bonus tech** | Expo SQLite for storage, Reanimated for the scrubber/press/entering animations, Yup validation (via react-hook-form). |
 
 ## Tech stack
@@ -66,14 +66,14 @@ If CocoaPods fails with a Unicode/encoding error, run with a UTF-8 locale:
 
 ## Usage
 
-1. Tap **+ New clip** in the header (the empty archive points to it).
+1. Tap **+ New clip** in the header (the empty clip list points to it).
 2. **Choose from library** and pick a video.
 3. Drag the red selection window along the film strip, or tap the strip to jump. The preview loops the
    selected 5 seconds. Tap the video to pause/play. Tap **Next**.
 4. Enter a name (required, 2–60 chars) and an optional description (≤ 500 chars), then
    **Crop & save**. The modal closes and the new clip appears at the top of the list.
 5. From details, use **Edit details** to change the text, or **Delete clip**.
-6. Tap the settings icon at the top right of the archive to change the theme or language.
+6. Tap the settings icon at the top right of the clip list to change the theme or language.
 
 Videos shorter than 5 s are kept whole. Videos shorter than 1 s are rejected.
 
@@ -90,12 +90,12 @@ src/
 │   └── +not-found.tsx        # Unknown links / deep links
 ├── components/
 │   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
-│   └── specifics/            # App components composed from commons: VideoEntry, ArchiveHeader, CropModal, …
+│   └── specifics/            # App components composed from commons: VideoEntry, VideoListHeader, CropModal, …
 ├── hooks/                    # TanStack mutations, filmstrip frames
 ├── services/                 # Self-contained service classes (VideoService, SqliteDatabase, FileStorage, KeyValueStorage) + instances
 ├── stores/                   # Zustand: video list, crop draft, persisted settings
 ├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
-├── lib/                      # constants, time math, text truncation, Yup schema, theme, layout, player helpers, query client
+├── lib/                      # constants, time math, text truncation, debounce, Yup schema, theme, layout, player helpers, query client
 ├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
 └── types/                    # Shared domain, navigation and icon types
 ```
@@ -147,7 +147,7 @@ An editorial, film-diary look rather than a card-based app UI:
   (dates, durations, buttons, forms, navigation), tracked uppercase overlines for metadata,
   tabular numerals for times and counts. Fonts load before the splash screen hides.
 - **Layout**: left-aligned, rules instead of cards, 4–6 px radii, no shadows; a compact,
-  scannable archive list and the video as the dominant element on the detail and trim
+  scannable clip list and the video as the dominant element on the detail and trim
   screens; spacing on a 4/8/12/16/24/32/48/64 rhythm.
 
 - **App icon**: a film strip whose middle frame is marked by the accent-red selection window
@@ -171,12 +171,13 @@ nothing about video diaries, and can be used in very different places:
 | `Spinner` | Activity indicator with a theme-aware `tone` |
 | `Thumbnail` | `expo-image` with the app's defaults (cover, short fade-in) |
 | `Button` | Every action. `primary` (ink block), `secondary` (ink outline), `danger` (accent outline) — 4 px radius, `regular` or `compact` size — and `text` (typographic action, e.g. `← BACK`, `+ NEW CLIP`). `title` is optional for icon-only buttons (pass `accessibilityLabel`) |
-| `Input` | Text input drawn as a bottom rule (ink when focused, accent when invalid) |
+| `Input` | Text input drawn as a bottom rule (ink when focused, accent when invalid), with optional `leading` / `trailing` adornments inside the rule |
+| `SearchField` | `Input` with a search icon and a clear button; keeps its own text, debounces it (`debounceMs`, default 300) and reports trimmed queries through `onSearch` |
 | `FormField` | Overline label, counter and error around any input |
 | `KeyboardAwareScroll` | Scroll view that keeps inputs above the keyboard |
 | `Sheet` | `Modal` presented as an iOS page sheet / an Android bottom sheet (dimmed backdrop, grabber, drag down to close). Takes `onClose`, optional `onBackPress` and a `header` that is also the drag handle |
 | `Header` | Uppercase title with optional `left` / `right` slots (no built-in horizontal padding) |
-| `PageHeader` | Screen masthead: `meta` and `topAction` on top, serif `title` with an `action` beside it, rule below; adds the top safe area |
+| `PageHeader` | Screen masthead: `meta` and `topAction` on top, serif `title` with an `action` beside it, optional `footer` (e.g. a search field), rule below; adds the top safe area |
 | `MediaItem` | Tappable list row: thumbnail (`imageUri`), `meta` overline, serif `title`, `description`, optional `titleMaxChars` / `descriptionMaxChars`, rule below |
 | `Stepper` | Generic step progress: takes `steps` (labels) and `current` (index); shows `01 / 03`, the current label and a 1 px progress rule sized by the number of steps |
 | `VideoFrame` | Letterboxed surface (6 px radius) for an `expo-video` player; never taller than `maxHeightRatio` of the screen (default 0.42) |
@@ -185,7 +186,7 @@ Commons don't import app data (`stores`, `services`, `hooks`) and never import s
 Components take everything they show through props: no translation keys, app constants or
 screen-specific spacing are hard-coded inside reusable components. Generic behaviour lives in
 a commons component (`Stepper`, `PageHeader`, `MediaItem`, …); a thin specifics component
-fills it with the app's data and texts (`StepIndicator`, `ArchiveHeader`, `VideoEntry`, …).
+fills it with the app's data and texts (`StepIndicator`, `VideoListHeader`, `VideoEntry`, …).
 
 Raw primitives live only inside commons: `Text` (→ `Typography`), Ionicons (→ `Icon`),
 `TextInput` (→ `Input`), `Pressable` (→ `Touchable`, `Button`), `ActivityIndicator`
@@ -197,7 +198,7 @@ commons:
 
 | Component | Built from |
 | --- | --- |
-| `ArchiveHeader` | `PageHeader` filled with the archive's texts: total clips, settings icon button, title, `+ NEW CLIP` |
+| `VideoListHeader` | `PageHeader` filled with the video list's texts: total clips, settings icon button, title, `+ NEW CLIP` |
 | `VideoEntry` / `VideoRow` | `MediaItem` filled from a `DiaryVideo` (still, date · length, title ≤ 30 chars, description ≤ 80 chars) |
 | `ActionRow` | `Row` + `Typography` + `Icon` + `Divider` (full-width typographic action, e.g. `EDIT DETAILS →`, `DELETE ×`) |
 | `EmptyState` | `Typography` only: accent overline, serif headline, message, optional action; `align` `start` or `center` |
@@ -232,8 +233,9 @@ into another project and it works there.
 | `FileStorage` | One folder in the documents directory: list files, resolve URIs, move files in, delete | folder name |
 | `KeyValueStorage` | Synchronous key-value store (used by the persisted settings store) | backend (defaults to `expo-sqlite/kv-store`) |
 
-The native modules (`expo-trim-video`, `expo-video-thumbnails`, `expo-image-picker`) are
-wrapped in small adapters (`VideoService/adapters`). `services/instances` is the only place
+The native modules (`expo-trim-video`, `expo-video-thumbnails`, `expo-image-manipulator`,
+`expo-image-picker`) are wrapped in small adapters (`VideoService/adapters`). The poster
+adapter grabs the first frame and resizes it to a 360 px wide JPEG before it's stored. `services/instances` is the only place
 that wires concrete services together and exports the instances the app uses
 (`videoService`, `keyValueStorage`); the rest of the app never calls the native video
 modules directly. Tests construct services with fakes, so no module mocking is needed.
@@ -256,6 +258,11 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
 - **Pagination.** The list loads 20 clips at a time with keyset pagination on
   `(created_at, id)` (backed by a composite index), so pages stay stable while clips are
   added or removed. The header shows the real total from `COUNT(*)`.
+- **Search.** A search field under the title filters clips by name or description. The
+  field keeps its own text and reports a debounced (300 ms) query; the query runs in SQLite (`LIKE` with escaped `%` / `_`) and
+  is paged like the full list, so it stays fast as the clip list grows. Results of an
+  outdated query are ignored, and a new clip only appears in the list if it matches the
+  current search.
 - **Errors.** Services report typed codes (`VideoServiceError` with `notFound`,
   `rangeOutOfBounds`, `sourceUnreadable`, `unknown`) instead of English messages; the hooks
   layer maps them to translated messages per operation (`videoErrorKey`), so the UI never
@@ -268,18 +275,22 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
   `use<Name>Store` hook. Its types split data from behaviour (`<Name>State` for the data,
   `<Name>Actions` for the functions, `<Name>Store` for both), and its initial state is a
   single constant in `constants.ts` (`INITIAL_<NAME>_STATE`) reused by the store, its reset
-  action and the tests.
+  action and the tests. Components read several fields of one store in a single call with
+  the typed `usePick` helper (`const { ids, total } = usePick(useVideoStore, ['ids', 'total'])`).
+  The keys are checked against the store's type, and since it is built on `useShallow` the
+  component re-renders only when one of the picked fields changes.
 - **TanStack Query** runs every async write as a mutation (crop, update, delete), giving
   pending/error state to the UI. The crop modal can't be swiped away, closed or stepped back
   while a crop is running (`useIsCropping`, built on `useIsMutating`). Mutation keys come
   from one key factory (`videoKeys`). Mutations don't retry automatically since they
   write to disk.
 - **Files.** The trimmer writes to a temp/cache location; the clip is moved to
-  `Documents/videos/<id>.mp4` and a poster frame to `Documents/thumbnails/<id>.jpg`. Only
+  `Documents/videos/<id>.mp4` and a 360 px poster to `Documents/thumbnails/<id>.jpg`. Only
   **file names** go into the database, and URIs are resolved at runtime, because the iOS app
   container path can change between installs/updates. If the DB insert fails, the written
-  files are removed, and on every launch `removeOrphanedFiles()` deletes files that no
-  record references (e.g. after a crash between saving a file and inserting its row).
+  files are removed, and at most once a day (on launch, `setup/maintenance`)
+  `removeOrphanedFiles()` deletes files that no record references (e.g. after a crash
+  between saving a file and inserting its row).
 
 ### Notable details
 
@@ -303,8 +314,9 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
 - **Trim bounds**: native trimmers reject an `end` past the real duration, and picker
   durations are rounded, so `segmentBounds()` clamps the segment and keeps a 50 ms margin
   from the very end. The player's precise duration replaces the picker's once loaded.
-- **Scalability**: paged loading (20 per page) into FlashList with self-subscribing rows;
-  `expo-image` with `recyclingKey` for thumbnails; a composite `(created_at, id)` index.
+- **Scalability**: paged loading and paged search (20 per page) into FlashList with
+  self-subscribing rows; small 360 px posters shown through `expo-image` with
+  `recyclingKey`; a composite `(created_at, id)` index; a daily, not per-launch, file sweep.
 - **Bottom buttons**: `useBottomGap()` keeps bottom actions clear of the home indicator /
   navigation bar: ≈ 50 pt from the screen edge on iOS, ≈ 64 dp on Android (gesture or
   3-button navigation), and 16 from the edge on devices without a system bar.
@@ -343,10 +355,11 @@ npm test
 ```
 
 Unit tests cover segment math, formatting and text truncation, the Yup schema, all three
-Zustand stores (including settings persistence and paging), the services (`VideoService` crop
+Zustand stores (including settings persistence, paging and search), the services (`VideoService` crop
 pipeline with rollback, paging, orphaned-file clean-up, details update, delete, filmstrip
-timing, player helpers and error codes; `SqliteVideoRepository` SQL, parameters and row
-mapping; `SqliteDatabase` migrations; `KeyValueStorage`)
+timing, player helpers and error codes; `SqliteVideoRepository` SQL, parameters, search
+escaping and row mapping; `SqliteDatabase` migrations; `KeyValueStorage`), the daily
+file-sweep schedule, search in the video store (including ignoring outdated results)
 using injected fakes instead of module mocks, device-language selection, and locale
 completeness (same keys and placeholders in every language).
 

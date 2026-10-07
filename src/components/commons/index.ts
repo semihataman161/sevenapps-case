@@ -8,6 +8,7 @@ export * from './KeyboardAwareScroll';
 export * from './MediaItem';
 export * from './PageHeader';
 export * from './Row';
+export * from './SearchField';
 export * from './Section';
 export * from './Sheet';
 export * from './Spinner';

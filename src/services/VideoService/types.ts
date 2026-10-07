@@ -60,6 +60,7 @@ export type PageCursor = Pick<VideoRecord, 'createdAt' | 'id'>;
 export type PageQuery = {
   limit: number;
   after?: PageCursor | null;
+  search?: string;
 };
 
 export type VideoPage = {

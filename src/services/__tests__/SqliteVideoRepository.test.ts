@@ -61,8 +61,41 @@ describe('SqliteVideoRepository', () => {
     const { repository, db } = makeRepository();
     await repository.getPage({ limit: 20, after: { createdAt: 100, id: 'clip1' } });
 
-    expect(sqlOf(db.getAllAsync)).toContain('WHERE created_at < ? OR (created_at = ? AND id < ?)');
+    expect(sqlOf(db.getAllAsync)).toContain(
+      'WHERE (created_at < ? OR (created_at = ? AND id < ?))',
+    );
     expect(db.getAllAsync.mock.calls[0].slice(1)).toEqual([100, 100, 'clip1', 20]);
+  });
+
+  it('searches name and description with escaped wildcards', async () => {
+    const { repository, db } = makeRepository();
+    await repository.getPage({ limit: 20, search: ' 50%_off ' });
+
+    expect(sqlOf(db.getAllAsync)).toContain(
+      "WHERE (name LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\')",
+    );
+    expect(db.getAllAsync.mock.calls[0].slice(1)).toEqual(['%50\\%\\_off%', '%50\\%\\_off%', 20]);
+  });
+
+  it('combines search and cursor', async () => {
+    const { repository, db } = makeRepository();
+    await repository.getPage({ limit: 20, search: 'sea', after: { createdAt: 100, id: 'clip1' } });
+
+    expect(sqlOf(db.getAllAsync)).toContain(') AND (created_at < ?');
+    expect(db.getAllAsync.mock.calls[0].slice(1)).toEqual([
+      '%sea%',
+      '%sea%',
+      100,
+      100,
+      'clip1',
+      20,
+    ]);
+  });
+
+  it('ignores a blank search', async () => {
+    const { repository, db } = makeRepository();
+    await repository.getPage({ limit: 20, search: '   ' });
+    expect(sqlOf(db.getAllAsync)).not.toContain('LIKE');
   });
 
   it('counts records', async () => {

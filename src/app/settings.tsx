@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { InfoRow, OptionRow, ScreenHeader, SettingsSection } from '@/components/specifics';
 import { getDeviceLanguage, NATIVE_LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from '@/i18n';
-import { useSettingsStore, type LanguagePreference, type ThemePreference } from '@/stores';
+import { usePick, useSettingsStore, type LanguagePreference, type ThemePreference } from '@/stores';
 
 const THEME_OPTIONS = [
   { value: 'system', labelKey: 'settings.themeSystem' },
@@ -19,10 +19,12 @@ function selectionTick() {
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
-  const theme = useSettingsStore((s) => s.theme);
-  const language = useSettingsStore((s) => s.language);
-  const setTheme = useSettingsStore((s) => s.setTheme);
-  const setLanguage = useSettingsStore((s) => s.setLanguage);
+  const { theme, language, setTheme, setLanguage } = usePick(useSettingsStore, [
+    'theme',
+    'language',
+    'setTheme',
+    'setLanguage',
+  ]);
 
   const chooseTheme = (value: ThemePreference) => {
     selectionTick();

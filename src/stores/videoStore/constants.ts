@@ -9,4 +9,6 @@ export const INITIAL_VIDEO_STATE: VideoState = {
   total: 0,
   nextCursor: null,
   isLoadingMore: false,
+  query: '',
+  isSearching: false,
 };

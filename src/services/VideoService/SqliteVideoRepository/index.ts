@@ -6,10 +6,14 @@ import type {
   VideoRecord,
   VideoRepositoryContract,
 } from '../types';
-import { VIDEO_COLUMNS } from './constants';
+import { LIKE_ESCAPE, VIDEO_COLUMNS } from './constants';
 import type { CountRow, FileNamesRow, VideoRow } from './types';
 
 export type * from './types';
+
+function escapeLike(term: string): string {
+  return term.replace(/[\\%_]/g, (character) => `${LIKE_ESCAPE}${character}`);
+}
 
 function fromRow(row: VideoRow): VideoRecord {
   return {
@@ -36,23 +40,30 @@ export class SqliteVideoRepository implements VideoRepositoryContract {
     return row?.total ?? 0;
   }
 
-  async getPage({ limit, after }: PageQuery): Promise<VideoRecord[]> {
+  async getPage({ limit, after, search }: PageQuery): Promise<VideoRecord[]> {
     const db = await this.database.connection();
-    const rows = after
-      ? await db.getAllAsync<VideoRow>(
-          `SELECT ${VIDEO_COLUMNS} FROM videos
-           WHERE created_at < ? OR (created_at = ? AND id < ?)
-           ORDER BY created_at DESC, id DESC
-           LIMIT ?`,
-          after.createdAt,
-          after.createdAt,
-          after.id,
-          limit,
-        )
-      : await db.getAllAsync<VideoRow>(
-          `SELECT ${VIDEO_COLUMNS} FROM videos ORDER BY created_at DESC, id DESC LIMIT ?`,
-          limit,
-        );
+    const conditions: string[] = [];
+    const params: (string | number)[] = [];
+
+    const term = search?.trim();
+    if (term) {
+      const pattern = `%${escapeLike(term)}%`;
+      conditions.push(
+        `(name LIKE ? ESCAPE '${LIKE_ESCAPE}' OR description LIKE ? ESCAPE '${LIKE_ESCAPE}')`,
+      );
+      params.push(pattern, pattern);
+    }
+    if (after) {
+      conditions.push('(created_at < ? OR (created_at = ? AND id < ?))');
+      params.push(after.createdAt, after.createdAt, after.id);
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const rows = await db.getAllAsync<VideoRow>(
+      `SELECT ${VIDEO_COLUMNS} FROM videos ${where} ORDER BY created_at DESC, id DESC LIMIT ?`,
+      ...params,
+      limit,
+    );
     return rows.map(fromRow);
   }
 

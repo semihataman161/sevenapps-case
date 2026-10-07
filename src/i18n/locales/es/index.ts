@@ -28,6 +28,10 @@ const es: Translation = {
     errorTitle: 'No se pudo cargar tu diario',
     errorMessage: 'Algo salió mal al leer tus clips guardados.',
     openClip: 'Abrir {{name}}',
+    searchPlaceholder: 'Buscar clips',
+    clearSearch: 'Borrar búsqueda',
+    noResultsTitle: 'Sin resultados',
+    noResultsMessage: 'Ningún clip contiene «{{query}}» en el título o la descripción.',
   },
   notFound: {
     title: 'Página no encontrada',

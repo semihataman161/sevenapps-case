@@ -28,6 +28,10 @@ const tr: Translation = {
     errorTitle: 'Günlüğün yüklenemedi',
     errorMessage: 'Kayıtlı kliplerin okunurken bir şeyler ters gitti.',
     openClip: '{{name}} klibini aç',
+    searchPlaceholder: 'Kliplerde ara',
+    clearSearch: 'Aramayı temizle',
+    noResultsTitle: 'Sonuç yok',
+    noResultsMessage: 'Başlığında veya açıklamasında “{{query}}” geçen bir klip yok.',
   },
   notFound: {
     title: 'Sayfa bulunamadı',

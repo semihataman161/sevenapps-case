@@ -9,11 +9,14 @@ export type VideoState = {
   total: number;
   nextCursor: PageCursor | null;
   isLoadingMore: boolean;
+  query: string;
+  isSearching: boolean;
 };
 
 export type VideoActions = {
   hydrate: () => Promise<void>;
   loadMore: () => Promise<void>;
+  search: (query: string) => Promise<void>;
   add: (video: VideoRecord) => void;
   updateDetails: (id: string, details: VideoDetails, updatedAt: number) => void;
   remove: (id: string) => void;

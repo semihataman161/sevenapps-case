@@ -13,6 +13,7 @@ export function PageHeader({
   meta,
   topAction,
   action,
+  footer,
   className = '',
   style,
   ...props
@@ -38,6 +39,7 @@ export function PageHeader({
         </Typography>
         {action}
       </Row>
+      {footer ? <View className="mb-4">{footer}</View> : null}
       <Divider />
     </View>
   );

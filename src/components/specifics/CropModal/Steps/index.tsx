@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { useCropDraftStore } from '@/stores';
+import { useCropDraftStore, usePick } from '@/stores';
 
 import { DetailsStep } from './DetailsStep';
 import { PickerStep } from './PickerStep';
@@ -12,8 +12,7 @@ import type { StepsProps } from './types';
 export type * from './types';
 
 export function Steps({ step, onStepChange, onComplete }: StepsProps) {
-  const source = useCropDraftStore((s) => s.source);
-  const reset = useCropDraftStore((s) => s.reset);
+  const { source, reset } = usePick(useCropDraftStore, ['source', 'reset']);
 
   useEffect(() => reset, [reset]);
 

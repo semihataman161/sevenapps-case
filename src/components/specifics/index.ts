@@ -1,5 +1,4 @@
 export * from './ActionRow';
-export * from './ArchiveHeader';
 export * from './CropModal';
 export * from './EmptyState';
 export * from './HeaderBackButton';
@@ -11,5 +10,6 @@ export * from './SettingsSection';
 export * from './StepIndicator';
 export * from './TrimScrubber';
 export * from './VideoEntry';
+export * from './VideoListHeader';
 export * from './VideoPlayer';
 export * from './VideoRow';

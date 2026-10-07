@@ -6,5 +6,6 @@ export type PageHeaderProps = ViewProps & {
   meta?: ReactNode;
   topAction?: ReactNode;
   action?: ReactNode;
+  footer?: ReactNode;
   className?: string;
 };

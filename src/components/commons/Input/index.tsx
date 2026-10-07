@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextInput } from 'react-native';
+import { TextInput, View } from 'react-native';
 
 import { useThemeColors } from '@/lib';
 
@@ -11,6 +11,8 @@ export type * from './types';
 export function Input({
   invalid = false,
   multiline,
+  leading,
+  trailing,
   className = '',
   style,
   onFocus,
@@ -22,23 +24,29 @@ export function Input({
   const ruleClass = ruleClasses[invalid ? 'invalid' : focused ? 'focused' : 'idle'];
 
   return (
-    <TextInput
-      multiline={multiline}
-      textAlignVertical={multiline ? 'top' : 'center'}
-      placeholderTextColor={colors.muted}
-      selectionColor={colors.accent}
-      cursorColor={colors.text}
-      onFocus={(event) => {
-        setFocused(true);
-        onFocus?.(event);
-      }}
-      onBlur={(event) => {
-        setFocused(false);
-        onBlur?.(event);
-      }}
-      className={`border-b py-2.5 text-ink dark:text-ink-dark ${multiline ? 'min-h-24' : ''} ${ruleClass} ${className}`}
-      style={[textStyle, style]}
-      {...props}
-    />
+    <View
+      className={`flex-row gap-2 border-b ${multiline ? 'items-start' : 'items-center'} ${ruleClass} ${className}`}
+    >
+      {leading}
+      <TextInput
+        multiline={multiline}
+        textAlignVertical={multiline ? 'top' : 'center'}
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.accent}
+        cursorColor={colors.text}
+        onFocus={(event) => {
+          setFocused(true);
+          onFocus?.(event);
+        }}
+        onBlur={(event) => {
+          setFocused(false);
+          onBlur?.(event);
+        }}
+        className={`flex-1 py-2.5 text-ink dark:text-ink-dark ${multiline ? 'min-h-24' : ''}`}
+        style={[textStyle, style]}
+        {...props}
+      />
+      {trailing}
+    </View>
   );
 }

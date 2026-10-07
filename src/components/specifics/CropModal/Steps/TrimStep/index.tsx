@@ -15,7 +15,7 @@ import {
   wholeSeconds,
 } from '@/lib';
 import { videoService } from '@/services';
-import { useCropDraftStore } from '@/stores';
+import { useCropDraftStore, usePick } from '@/stores';
 
 import { Button, Icon, Spinner, Touchable, Typography, VideoFrame } from '@/components/commons';
 import { TrimScrubber } from '../../../TrimScrubber';
@@ -40,9 +40,11 @@ export function TrimStep({
 }: TrimStepProps) {
   const { t } = useTranslation();
   const bottomGap = useBottomGap();
-  const start = useCropDraftStore((s) => s.start);
-  const setStart = useCropDraftStore((s) => s.setStart);
-  const setDuration = useCropDraftStore((s) => s.setDuration);
+  const { start, setStart, setDuration } = usePick(useCropDraftStore, [
+    'start',
+    'setStart',
+    'setDuration',
+  ]);
 
   const player = useVideoPlayer(source.uri, (p) =>
     videoService.configurePlayer(p, { loop: false, timeUpdateEventInterval: TIME_UPDATE_INTERVAL }),

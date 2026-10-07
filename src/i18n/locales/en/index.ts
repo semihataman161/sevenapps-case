@@ -26,6 +26,10 @@ const en = {
     errorTitle: "Couldn't load your diary",
     errorMessage: 'Something went wrong while reading your saved clips.',
     openClip: 'Open {{name}}',
+    searchPlaceholder: 'Search clips',
+    clearSearch: 'Clear search',
+    noResultsTitle: 'No matches',
+    noResultsMessage: 'No clip title or description contains “{{query}}”.',
   },
   notFound: {
     title: 'Page not found',

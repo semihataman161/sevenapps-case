@@ -62,6 +62,7 @@ describe('useVideoStore', () => {
     expect(videoService.listPage).toHaveBeenCalledWith({
       limit: 20,
       after: { createdAt: 2, id: 'b' },
+      search: '',
     });
     expect(useVideoStore.getState()).toMatchObject({
       ids: ['c', 'b', 'a'],
@@ -74,6 +75,46 @@ describe('useVideoStore', () => {
     useVideoStore.setState({ status: 'ready', nextCursor: null });
     await useVideoStore.getState().loadMore();
     expect(videoService.listPage).not.toHaveBeenCalled();
+  });
+
+  it('replaces the list with search results', async () => {
+    useVideoStore.setState({
+      status: 'ready',
+      ids: ['c', 'b'],
+      byId: { c: makeVideo('c', 3), b: makeVideo('b', 2) },
+      total: 3,
+    });
+    videoService.listPage.mockResolvedValue({ videos: [makeVideo('b', 2)], nextCursor: null });
+
+    await useVideoStore.getState().search('sea');
+    expect(videoService.listPage).toHaveBeenCalledWith({ limit: 20, search: 'sea' });
+    expect(useVideoStore.getState()).toMatchObject({
+      query: 'sea',
+      ids: ['b'],
+      total: 3,
+      isSearching: false,
+    });
+  });
+
+  it('ignores results of an outdated search', async () => {
+    let resolveFirst: (value: unknown) => void = () => {};
+    videoService.listPage
+      .mockImplementationOnce(() => new Promise((resolve) => (resolveFirst = resolve)))
+      .mockResolvedValueOnce({ videos: [makeVideo('b', 2)], nextCursor: null });
+
+    const first = useVideoStore.getState().search('se');
+    await useVideoStore.getState().search('sea');
+    resolveFirst({ videos: [makeVideo('x', 9)], nextCursor: null });
+    await first;
+
+    expect(useVideoStore.getState()).toMatchObject({ query: 'sea', ids: ['b'] });
+  });
+
+  it('only shows new clips that match the current search', () => {
+    useVideoStore.setState({ query: 'sea' });
+    useVideoStore.getState().add({ ...makeVideo('a', 1), name: 'Mountain' });
+    useVideoStore.getState().add({ ...makeVideo('b', 2), name: 'Seaside' });
+    expect(useVideoStore.getState()).toMatchObject({ ids: ['b'], total: 2 });
   });
 
   it('records hydration errors', async () => {

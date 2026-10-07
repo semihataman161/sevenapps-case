@@ -28,6 +28,10 @@ const de: Translation = {
     errorTitle: 'Tagebuch konnte nicht geladen werden',
     errorMessage: 'Beim Lesen deiner gespeicherten Clips ist etwas schiefgelaufen.',
     openClip: '{{name}} öffnen',
+    searchPlaceholder: 'Clips durchsuchen',
+    clearSearch: 'Suche löschen',
+    noResultsTitle: 'Keine Treffer',
+    noResultsMessage: 'Kein Clip enthält „{{query}}“ im Titel oder in der Beschreibung.',
   },
   notFound: {
     title: 'Seite nicht gefunden',

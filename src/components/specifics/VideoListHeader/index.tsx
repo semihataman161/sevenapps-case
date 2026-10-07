@@ -1,18 +1,20 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button, PageHeader, Row, Typography } from '@/components/commons';
+import { Button, PageHeader, Row, SearchField, Typography } from '@/components/commons';
 
-import type { ArchiveHeaderProps } from './types';
+import type { VideoListHeaderProps } from './types';
 
 export type * from './types';
 
-export function ArchiveHeader({
+export function VideoListHeader({
   count,
   onNewClip,
   onOpenSettings,
+  initialQuery,
+  onSearch,
   className = '',
   ...props
-}: ArchiveHeaderProps) {
+}: VideoListHeaderProps) {
   const { t } = useTranslation();
 
   return (
@@ -47,6 +49,17 @@ export function ArchiveHeader({
           title={t('list.newClip')}
           onPress={onNewClip}
         />
+      }
+      footer={
+        onSearch ? (
+          <SearchField
+            initialQuery={initialQuery}
+            onSearch={onSearch}
+            placeholder={t('list.searchPlaceholder')}
+            clearLabel={t('list.clearSearch')}
+            accessibilityLabel={t('list.searchPlaceholder')}
+          />
+        ) : null
       }
       className={`px-5 ${className}`}
       {...props}
