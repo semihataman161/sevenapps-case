@@ -1,3 +1,10 @@
+import type { MediaPlayerContract } from '@/services';
+
+export type SegmentPlayer = Pick<
+  MediaPlayerContract,
+  'currentTime' | 'playbackRate' | 'pause' | 'seek' | 'playFrom' | 'onPlayToEnd'
+>;
+
 export type PlaybackSegment = {
   start: number;
   end: number;

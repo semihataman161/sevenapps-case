@@ -1,4 +1,4 @@
-import { ELLIPSIS, truncate } from '@/lib';
+import { ELLIPSIS, truncate } from '@/lib/text';
 
 describe('truncate', () => {
   it('leaves text within the limit untouched', () => {
@@ -11,20 +11,21 @@ describe('truncate', () => {
     );
   });
 
-  it('cuts inside a word when there is no late space', () => {
+  it('cuts inside a word when there is no space near the limit', () => {
     expect(truncate('abcdefghijklmnopqrstuvwxyz', 10)).toBe(`abcdefghi${ELLIPSIS}`);
   });
 
   it('never returns more characters than the limit', () => {
     const result = truncate('One two three four five six seven', 12);
+
     expect(Array.from(result).length).toBeLessThanOrEqual(12);
   });
 
-  it('counts emoji as single characters', () => {
+  it('counts an emoji as one character', () => {
     expect(truncate('🎬🎬🎬🎬🎬', 3)).toBe(`🎬🎬${ELLIPSIS}`);
   });
 
-  it('returns an empty string for a non-positive limit', () => {
+  it('returns an empty string for a limit of zero', () => {
     expect(truncate('Anything', 0)).toBe('');
   });
 });

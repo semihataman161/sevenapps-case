@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react';
 
-import type { MediaPlayer } from '@/services';
-
 import { LOOP_LEAD, MAX_LOOKAHEAD, RESTART_TOLERANCE, SEEK_SETTLE_MS } from './constants';
-import type { SegmentPlayback, SegmentPlaybackOptions } from './types';
+import type { SegmentPlayback, SegmentPlaybackOptions, SegmentPlayer } from './types';
 
 export type * from './types';
 
 export function useSegmentPlayback(
-  media: MediaPlayer,
+  media: SegmentPlayer,
   { segment, isPlaying, enabled }: SegmentPlaybackOptions,
 ): SegmentPlayback {
   const lastCheck = useRef({ at: 0, loopedAt: 0 });

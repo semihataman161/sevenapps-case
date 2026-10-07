@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import type { MediaPlayer } from '@/services';
-
-import type { Filmstrip } from './types';
+import type { Filmstrip, FilmstripSource } from './types';
 
 export type * from './types';
 
 export function useFilmstrip(
-  media: MediaPlayer,
+  media: FilmstripSource,
   duration: number,
   count: number,
   enabled: boolean,

@@ -1,40 +1,38 @@
 import { createSettingsStore } from '@/stores/settingsStore';
-import { INITIAL_SETTINGS_STATE } from '@/stores/settingsStore/constants';
+import { SETTINGS_STORAGE_KEY } from '@/stores/settingsStore/constants';
 
-const values = new Map<string, string>();
-
-const useSettingsStore = createSettingsStore({
-  getItem: (key) => values.get(key) ?? null,
-  setItem: (key, value) => void values.set(key, value),
-  removeItem: (key) => void values.delete(key),
-});
-
-const saved = (theme: string) => JSON.stringify({ state: { theme, language: 'tr' }, version: 1 });
-
-async function rehydrate() {
-  await useSettingsStore.persist.rehydrate();
+function makeStore(saved?: object) {
+  const values = new Map<string, string>();
+  if (saved) values.set(SETTINGS_STORAGE_KEY, JSON.stringify({ state: saved, version: 1 }));
+  const store = createSettingsStore({
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => void values.set(key, value),
+    removeItem: (key) => void values.delete(key),
+  });
+  return { store, values };
 }
 
-describe('createSettingsStore', () => {
-  beforeEach(() => {
-    useSettingsStore.setState(INITIAL_SETTINGS_STATE);
-    values.clear();
+describe('settingsStore', () => {
+  it('starts with the system theme and language', () => {
+    const { store } = makeStore();
+
+    expect(store.getState()).toMatchObject({ theme: 'system', language: 'system' });
   });
 
-  it('restores saved settings', async () => {
-    values.set('video-diary/settings', saved('dark'));
-    await rehydrate();
-    expect(useSettingsStore.getState()).toMatchObject({ theme: 'dark', language: 'tr' });
+  it('restores saved settings', () => {
+    const { store } = makeStore({ theme: 'dark', language: 'tr' });
+
+    expect(store.getState()).toMatchObject({ theme: 'dark', language: 'tr' });
   });
 
-  it('starts with system defaults', async () => {
-    await rehydrate();
-    expect(useSettingsStore.getState()).toMatchObject({ theme: 'system', language: 'system' });
-  });
+  it('saves only the preferences under its storage key', () => {
+    const { store, values } = makeStore();
 
-  it('persists changes under its storage key', async () => {
-    await rehydrate();
-    useSettingsStore.getState().setTheme('dark');
-    expect(JSON.parse(values.get('video-diary/settings') ?? '{}').state.theme).toBe('dark');
+    store.getState().setTheme('dark');
+
+    expect(JSON.parse(values.get(SETTINGS_STORAGE_KEY) ?? '{}')).toEqual({
+      state: { theme: 'dark', language: 'system' },
+      version: 1,
+    });
   });
 });

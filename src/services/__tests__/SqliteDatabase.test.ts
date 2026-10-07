@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { SqliteDatabase } from '@/services/SqliteDatabase';
 
-function makeSqlite(userVersion: number) {
+function fakeSqlite(userVersion: number) {
   const executed: string[] = [];
   const db = {
     execAsync: jest.fn(async (sql: string) => {
@@ -13,40 +13,56 @@ function makeSqlite(userVersion: number) {
       await task(db);
     }),
   };
-  return { db: db as unknown as SQLiteDatabase, executed };
+  return { db, sqlite: db as unknown as SQLiteDatabase, executed };
+}
+
+function createDatabase(migrations: string[], open: () => SQLiteDatabase) {
+  return new SqliteDatabase({ name: 'test.db', migrations, open });
 }
 
 describe('SqliteDatabase', () => {
-  it('runs pending migrations and bumps the user version', async () => {
-    const { db, executed } = makeSqlite(1);
-    const database = new SqliteDatabase({
-      name: 'test.db',
-      migrations: ['A', 'B', 'C'],
-      open: () => db,
-    });
+  it('runs pending migrations in one transaction and bumps the user version', async () => {
+    const { db, sqlite, executed } = fakeSqlite(1);
+    const database = createDatabase(['A', 'B', 'C'], () => sqlite);
 
     await database.connection();
+
     expect(executed).toEqual(['PRAGMA journal_mode = WAL;', 'B', 'C', 'PRAGMA user_version = 3']);
+    expect(db.withExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
   });
 
-  it('skips migrations when the schema is current', async () => {
-    const { db, executed } = makeSqlite(2);
-    const database = new SqliteDatabase({
-      name: 'test.db',
-      migrations: ['A', 'B'],
-      open: () => db,
-    });
+  it('skips migrations when the schema is up to date', async () => {
+    const { db, sqlite, executed } = fakeSqlite(2);
+    const database = createDatabase(['A', 'B'], () => sqlite);
 
     await database.connection();
+
     expect(executed).toEqual(['PRAGMA journal_mode = WAL;']);
+    expect(db.withExclusiveTransactionAsync).not.toHaveBeenCalled();
   });
 
-  it('opens the database only once', async () => {
-    const { db } = makeSqlite(0);
-    const open = jest.fn(() => db);
-    const database = new SqliteDatabase({ name: 'test.db', migrations: [], open });
+  it('opens the database once for concurrent callers', async () => {
+    const { sqlite } = fakeSqlite(0);
+    const open = jest.fn(() => sqlite);
+    const database = createDatabase([], open);
 
     await Promise.all([database.connection(), database.connection()]);
+
     expect(open).toHaveBeenCalledTimes(1);
+  });
+
+  it('tries to open again after a failed attempt', async () => {
+    const { sqlite } = fakeSqlite(0);
+    const open = jest
+      .fn<SQLiteDatabase, []>()
+      .mockImplementationOnce(() => {
+        throw new Error('locked');
+      })
+      .mockReturnValue(sqlite);
+    const database = createDatabase([], open);
+
+    await expect(database.connection()).rejects.toThrow('locked');
+    await expect(database.connection()).resolves.toBe(sqlite);
+    expect(open).toHaveBeenCalledTimes(2);
   });
 });

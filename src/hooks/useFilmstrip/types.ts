@@ -1,4 +1,6 @@
-import type { MediaFrame } from '@/services';
+import type { MediaFrame, MediaPlayerContract } from '@/services';
+
+export type FilmstripSource = Pick<MediaPlayerContract, 'createFilmstrip'>;
 
 export type FilmstripFrames = MediaFrame[];
 

@@ -411,19 +411,56 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
 ## Testing
 
 ```bash
-npm test
+npm test               # run once
+npm run test:watch     # re-run on change
+npm run test:coverage  # with a coverage report in coverage/
 ```
 
-Unit tests cover segment math, formatting and text truncation, class merging (`cn`), the Yup schema, all three
-Zustand stores (including settings persistence, paging and search), the services (`VideoService` crop
-pipeline with rollback, paging, orphaned-file clean-up, details update, delete and error
-codes; `MediaPicker` asset mapping; `MediaPlayer` settings, control, safe pause, filmstrip
-timing and event forwarding; `SqliteVideoRepository` SQL, parameters, search
-escaping and row mapping; `SqliteDatabase` migrations; `KeyValueStorage`), loading a single clip by id (repository, service and store), the daily
-file-sweep schedule, search in the video store (including ignoring outdated results),
-which background crops are listed as running or failed (a real `QueryClient`),
-with stores, services and startup jobs built from injected fakes instead of module mocks, device-language selection, and locale
-completeness (same keys and placeholders in every language).
+Jest with the `jest-expo` preset, and React Native Testing Library (`@testing-library/react-native`)
+for hooks and components. The tests cover the behaviour the app depends on, not framework or
+library behaviour, and not code that only forwards a call:
+
+| Area | What is tested |
+| --- | --- |
+| `lib` | Time formatting and segment math (clamping, the 5 s window, the end margin for native trimmers), word-aware truncation (emoji count as one character), the Yup metadata schema and its translation keys |
+| `VideoService` | Crop pipeline (trim → store → poster → save) with rollback when saving fails and no writes when trimming fails, keyset paging cursor, trimmed detail updates, delete order (record before files), orphaned-file clean-up, error-code mapping |
+| `SqliteVideoRepository` | Generated SQL and parameters: explicit columns, stable order, cursor paging, `LIKE` search with escaped `%` / `_`, insert column order, `notFound` on a missing update |
+| `SqliteDatabase` | Pending migrations in one transaction, skipping when current, one open for concurrent callers, retrying after a failed open |
+| `MediaPlayer` / `MediaPicker` | Partial settings, toggle, a pause that never throws, filmstrip frame times, the combined `onLoad` event and its cleanup; picked-asset mapping (ms → s, missing metadata, cancel) |
+| Stores | Video store paging, search (including ignoring outdated results), add/update/remove with the total kept in sync, loading one clip into the cache; crop-draft clamping; settings persistence |
+| Hooks | `useCropJobs`: newest crop first, a saved clip lands in the list and its job disappears, a failed crop keeps its message, retry re-runs the same input, dismiss removes it; `useVideoRecord`: uses a loaded clip, waits for the list, loads a clip outside the loaded pages (deep links), reports a missing one; `useSegmentPlayback`: starts and pauses the preview, loops back before the segment end, restarts on play-to-end, scrubbing; `useFilmstrip`: waits until enabled, returns frames, settles on failure; error code → message key mapping |
+| Components | `Button` (no press while disabled or loading), `SearchField` (debounced trimmed query, clear), `MetadataForm` (trimmed submit, required name, prefill, submit error, locked while saving), `PickerStep` (keeps the pick, rejects videos under 1 s, cancel, library error), `DetailsStep` (shows the segment, starts the crop and closes at once), `CropJobRow` (running vs failed, retry/dismiss by id) |
+| Startup | The daily orphaned-file sweep (due, not due, failed sweep not recorded) |
+| `i18n` | Every locale has the English keys, no empty texts and the same placeholders; device-language selection |
+
+Conventions:
+
+- **One behaviour per test**, named after the behaviour, written as arrange–act–assert.
+- **No shared state between tests.** Each test builds its own store, service or fake (`makeStore()`,
+  `makeService()`); test data comes from small builders in `src/testing` (`buildVideo`,
+  `buildSource`) that take only the fields a test cares about.
+- **Fakes instead of module mocks.** Services, store factories and startup jobs receive their
+  dependencies, so tests pass fakes directly. `jest.mock('@/services')` is used only where code
+  reads the app's instances (hooks and crop steps).
+- **Typed fakes.** Fakes are typed against the real contracts (`jest.Mocked<Pick<VideoService, …>>`,
+  `jest.Mocked<SegmentPlayer>`), so renaming a method or changing a signature breaks the test
+  build instead of leaving tests green against an old API. Hooks ask only for what they use
+  (`useSegmentPlayback` takes a `SegmentPlayer`, `useFilmstrip` a `FilmstripSource`), so their
+  fakes need no casts. Casts remain only at native boundaries (the SQLite handle, the
+  `expo-video` player and its thumbnails), whose types carry dozens of native members.
+- **Table-driven cases** with `it.each` / `describe.each` for inputs that share one rule.
+- **Test like a user.** Components are found by role, label or visible text
+  (`getByRole('button', { name: /crop & save/i })`, `getByLabelText('Name')`) and driven with
+  `userEvent`, never by test ids or internal state. Time-based behaviour (search debounce,
+  the preview loop) uses Jest fake timers.
+- **Shared helpers in `src/testing`**: `renderWithProviders` / `renderHookWithProviders` wrap the
+  tree in the providers the app has (safe area, a fresh `QueryClient` without retries, English
+  i18n), and `createServicesMock()` replaces `@/services` with fake services and a real video
+  store built from them, for code that reads the app's instances.
+- **Native modules are stubbed once** in `jest.setup.ts` (`expo-video`, Reanimated and
+  Worklets through their own Jest mocks); everything else runs for real.
+- **Mocks reset automatically** between tests (`clearMocks`, `restoreMocks`), so spies such as
+  silenced `console.warn` never leak into other tests.
 
 ## Supported devices
 
