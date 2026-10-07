@@ -14,9 +14,8 @@
     "android": {
       "package": "com.sevenapps.videodiary",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F5F3EE",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
@@ -45,9 +44,10 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#F5F3EE",
           "dark": {
-            "backgroundColor": "#0b0b0f"
+            "image": "./assets/splash-icon-dark.png",
+            "backgroundColor": "#121110"
           }
         }
       ],

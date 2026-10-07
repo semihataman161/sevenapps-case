@@ -1,6 +1,7 @@
-import { useIsMutating } from '@tanstack/react-query';
 import { useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { useIsCropping } from '@/hooks';
 
 import { Button, Header, Sheet } from '@/components/commons';
 import { StepIndicator, type CropStep } from '../StepIndicator';
@@ -11,7 +12,7 @@ export type * from './types';
 
 export function CropModal({ ref, ...props }: CropModalProps) {
   const { t } = useTranslation();
-  const isCropping = useIsMutating({ mutationKey: ['videos', 'crop'] }) > 0;
+  const isCropping = useIsCropping();
   const [isVisible, setIsVisible] = useState(false);
   const [step, setStep] = useState<CropStep>(0);
 

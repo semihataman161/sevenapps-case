@@ -92,7 +92,7 @@ src/
 │   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
 │   └── specifics/            # App components composed from commons: VideoEntry, ArchiveHeader, CropModal, …
 ├── hooks/                    # TanStack mutations, filmstrip frames
-├── services/                 # Self-contained service classes (VideoService, SqliteDatabase, FileStorage, KeyValueStorage) + container
+├── services/                 # Self-contained service classes (VideoService, SqliteDatabase, FileStorage, KeyValueStorage) + instances
 ├── stores/                   # Zustand: video list, crop draft, persisted settings
 ├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
 ├── lib/                      # constants, time math, text truncation, Yup schema, theme, layout, player helpers, query client
@@ -149,6 +149,11 @@ An editorial, film-diary look rather than a card-based app UI:
 - **Layout**: left-aligned, rules instead of cards, 4–6 px radii, no shadows; a compact,
   scannable archive list and the video as the dominant element on the detail and trim
   screens; spacing on a 4/8/12/16/24/32/48/64 rhythm.
+
+- **App icon**: a film strip whose middle frame is marked by the accent-red selection window
+  with a play symbol, the same "pick one moment from a video" gesture as the trim screen.
+  `assets/` holds only the files `app.json` uses: the app icon, the Android adaptive
+  foreground and monochrome layers, the light and dark splash images and the favicon.
 
 ### Components: commons and specifics
 
@@ -228,7 +233,7 @@ into another project and it works there.
 | `KeyValueStorage` | Synchronous key-value store (used by the persisted settings store) | backend (defaults to `expo-sqlite/kv-store`) |
 
 The native modules (`expo-trim-video`, `expo-video-thumbnails`, `expo-image-picker`) are
-wrapped in small adapters (`VideoService/adapters`). `services/container` is the only place
+wrapped in small adapters (`VideoService/adapters`). `services/instances` is the only place
 that wires concrete services together and exports the instances the app uses
 (`videoService`, `keyValueStorage`); the rest of the app never calls the native video
 modules directly. Tests construct services with fakes, so no module mocking is needed.
@@ -266,7 +271,8 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
   action and the tests.
 - **TanStack Query** runs every async write as a mutation (crop, update, delete), giving
   pending/error state to the UI. The crop modal can't be swiped away, closed or stepped back
-  while a crop is running (`useIsMutating`). Mutations don't retry automatically since they
+  while a crop is running (`useIsCropping`, built on `useIsMutating`). Mutation keys come
+  from one key factory (`videoKeys`). Mutations don't retry automatically since they
   write to disk.
 - **Files.** The trimmer writes to a temp/cache location; the clip is moved to
   `Documents/videos/<id>.mp4` and a poster frame to `Documents/thumbnails/<id>.jpg`. Only

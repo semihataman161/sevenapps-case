@@ -13,3 +13,10 @@ export const FALLBACK_ERROR_KEYS: Record<VideoOperation, VideoErrorKey> = {
   update: 'errors.updateFailed',
   delete: 'errors.deleteFailed',
 };
+
+export const videoKeys = {
+  all: ['videos'] as const,
+  crop: () => [...videoKeys.all, 'crop'] as const,
+  update: (id: string) => [...videoKeys.all, 'update', id] as const,
+  delete: () => [...videoKeys.all, 'delete'] as const,
+};

@@ -1,4 +1,4 @@
-export * from './container';
+export * from './instances';
 export * from './SqliteDatabase';
 export * from './FileStorage';
 export * from './KeyValueStorage';
