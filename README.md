@@ -10,12 +10,12 @@ Built for the SevenApps React Native case study.
 
 | Area | What's there |
 | --- | --- |
-| **Clip list** (`/`) | Persistent list of cropped clips with poster thumbnails, duration badge and date. Tap to open. Empty and error states. |
+| **Clip list** (`/`) | Archive of cropped clips with a total count; each entry is a compact row (still, date, length, title, description). Tap to open. Typographic empty and error states. |
 | **Details** (`/videos/[id]`) | Plays the clip (native controls, looping) with its name, description, date and length. Edit and delete actions. |
-| **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet; on Android a bottom sheet over a dimmed backdrop that closes when dragged down) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a filmstrip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
+| **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet; on Android a bottom sheet over a dimmed backdrop that closes when dragged down) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a film-strip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
 | **Cropping** | `trimVideo` from `expo-trim-video`, run through a TanStack Query mutation. |
 | **Edit** (`/videos/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
-| **Settings** (`/settings`) | Gear icon on the clip list. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
+| **Settings** (`/settings`) | Settings icon at the top right of the archive. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
 | **Bonus tech** | Expo SQLite for storage, Reanimated for the scrubber/press/entering animations, Yup validation (via react-hook-form). |
 
 ## Tech stack
@@ -66,14 +66,14 @@ If CocoaPods fails with a Unicode/encoding error, run with a UTF-8 locale:
 
 ## Usage
 
-1. Tap **Crop your first clip** (or **New clip** once you have some).
+1. Tap **+ New clip** in the header (the empty archive points to it).
 2. **Choose from library** and pick a video.
-3. Drag the purple frame along the filmstrip, or tap the strip to jump. The preview loops the
+3. Drag the red selection window along the film strip, or tap the strip to jump. The preview loops the
    selected 5 seconds. Tap the video to pause/play. Tap **Next**.
 4. Enter a name (required, 2–60 chars) and an optional description (≤ 500 chars), then
    **Crop & save**. The modal closes and the new clip appears at the top of the list.
 5. From details, use **Edit details** to change the text, or **Delete clip**.
-6. Tap the gear icon on the clip list to open **Settings** and change the theme or language.
+6. Tap the settings icon at the top right of the archive to change the theme or language.
 
 Videos shorter than 5 s are kept whole. Videos shorter than 1 s are rejected.
 
@@ -90,13 +90,13 @@ src/
 │   └── +not-found.tsx        # Unknown links / deep links
 ├── components/
 │   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
-│   └── specifics/            # App components composed from commons: OptionRow, VideoCard, CropModal, …
+│   └── specifics/            # App components composed from commons: VideoEntry, ArchiveHeader, CropModal, …
 ├── hooks/                    # TanStack mutations, filmstrip frames
 ├── services/                 # cropVideo pipeline, file storage
 ├── store/                    # Zustand: video list, crop draft, persisted settings
 ├── db/                       # SQLite client, migrations, repository
 ├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
-├── lib/                      # constants, time math, Yup schema, theme, layout, player helpers, query client
+├── lib/                      # constants, time math, text truncation, Yup schema, theme, layout, player helpers, query client
 ├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
 └── types/                    # Shared domain, navigation and icon types
 ```
@@ -106,19 +106,27 @@ src/
 Every module lives in a folder named after it:
 
 ```
-components/specifics/VideoCard/
+components/specifics/VideoEntry/
 ├── index.tsx   # the component; imports its types from ./types and re-exports them
-└── types.ts    # VideoCardProps
+├── constants.ts # behaviour constants: limits, durations, thresholds (only if it has any)
+├── styles.ts   # style constants: class maps, variant tables, sizes (only if it has any)
+└── types.ts    # VideoEntryProps
 ```
 
 - `index.ts(x)` holds the implementation, `types.ts` its types. Modules without types have
   only an `index`.
+- Style-related constants (Tailwind class maps per variant/tone/size, fixed dimensions,
+  typography scales, theme-colour maps) live in the component's own `styles.ts`, and
+  behaviour constants (character limits, animation durations, gesture thresholds, playback
+  timings, step lists) in its `constants.ts`, so `index.tsx` only contains the component.
+  Both files are internal and not re-exported. Route files in `src/app` are the exception:
+  every file there becomes a route, so their few constants stay in the screen file.
 - Each top-level folder has an `index.ts` barrel exporting everything inside it, so code
   imports from the folder: `import { formatTime, useThemeColors } from '@/lib'`.
 - `components/` has no barrel of its own. Components are imported from `commons` or
   `specifics` explicitly, so every import shows which kind it is:
   `import { Button } from '@/components/commons'`,
-  `import { VideoCard } from '@/components/specifics'`.
+  `import { VideoEntry } from '@/components/specifics'`.
 - Inside a folder, modules import each other relatively (`../VideoFrame`), never through
   their own barrel, to avoid import cycles.
 - Subcomponents used by a single component live in its folder (e.g.
@@ -128,6 +136,21 @@ components/specifics/VideoCard/
 - `src/app/` is the exception: Expo Router treats every file there as a route, so route
   files stay flat and contain no component or type declarations.
 
+### Visual design
+
+An editorial, film-diary look rather than a card-based app UI:
+
+- **Palette** (warm, near-monochrome; accent used sparingly): background `#F5F3EE`, text
+  `#171717`, secondary `#77736C`, muted `#9A968F`, divider `#D8D4CC`, subtle surface
+  `#ECE9E2`, accent `#A33A32`. A matching dark palette is defined in `tailwind.config.js` and
+  `lib/theme`.
+- **Type**: DM Serif Display for headings and entry titles, Inter for everything functional
+  (dates, durations, buttons, forms, navigation), tracked uppercase overlines for metadata,
+  tabular numerals for times and counts. Fonts load before the splash screen hides.
+- **Layout**: left-aligned, rules instead of cards, 4–6 px radii, no shadows; a compact,
+  scannable archive list and the video as the dominant element on the detail and trim
+  screens; spacing on a 4/8/12/16/24/32/48/64 rhythm.
+
 ### Components: commons and specifics
 
 **`components/commons/`** holds the smallest building blocks. Each one does one thing, knows
@@ -135,43 +158,54 @@ nothing about video diaries, and can be used in very different places:
 
 | Component | Purpose |
 | --- | --- |
-| `Typography` | All text: `variant` (display, title, body, label, caption, micro, overline), `tone` (default, muted, accent, danger, inverse), `weight` |
-| `Icon` | Ionicons with a theme-aware `tone` |
+| `Typography` | All text. Serif variants (`display`, `headline`, `title`, `subtitle`) for editorial moments, sans variants (`body`, `label`, `caption`) for UI, and tracked uppercase `overline` / `meta` / `action` / `micro` (locale-aware uppercasing). `tone`, `weight`, `tabular` numerals, and `maxChars` to cut long text with an ellipsis (`truncate` from `lib`) |
+| `Icon` | Ionicons with a theme-aware, monochrome-by-default `tone` |
 | `Row` / `Stack` | Horizontal / vertical layout with `gap`, `align`, `justify` |
-| `Card` | Rounded surface |
-| `Divider` | Hairline separator |
-| `Section` | Group with an optional heading |
-| `Badge` | Small pill label (`accent` or `overlay`) |
-| `IconBadge` | Icon in a tinted circle |
-| `PressableScale` | Pressable with a scale (and optional fade) press animation |
-| `Button` | `PressableScale` + `Icon` + `Typography` in four variants: `primary`, `secondary`, `danger` (boxed, scale on press) and `text` (no box, fades on press, e.g. Back) |
-| `Input` | Styled text input with an `invalid` state |
-| `FormField` | Label, optional counter and error message around any input |
+| `Divider` | 1 px rule in the divider colour |
+| `Section` | Group with an optional overline heading |
+| `Touchable` | The one pressable base: fade (and optional scale) on press. Every tappable area (rows, entries, the trim preview) and `Button` use it |
+| `Spinner` | Activity indicator with a theme-aware `tone` |
+| `Thumbnail` | `expo-image` with the app's defaults (cover, short fade-in) |
+| `Button` | Every action. `primary` (ink block), `secondary` (ink outline), `danger` (accent outline) — 4 px radius, `regular` or `compact` size — and `text` (typographic action, e.g. `← BACK`, `+ NEW CLIP`). `title` is optional for icon-only buttons (pass `accessibilityLabel`) |
+| `Input` | Text input drawn as a bottom rule (ink when focused, accent when invalid) |
+| `FormField` | Overline label, counter and error around any input |
 | `KeyboardAwareScroll` | Scroll view that keeps inputs above the keyboard |
 | `Sheet` | `Modal` presented as an iOS page sheet / an Android bottom sheet (dimmed backdrop, grabber, drag down to close). Takes `onClose`, optional `onBackPress` and a `header` that is also the drag handle |
-| `Header` | Title with optional `left` / `right` slots |
-| `VideoFrame` | Rounded, letterboxed surface for an `expo-video` player |
+| `Header` | Uppercase title with optional `left` / `right` slots (no built-in horizontal padding) |
+| `PageHeader` | Screen masthead: `meta` and `topAction` on top, serif `title` with an `action` beside it, rule below; adds the top safe area |
+| `MediaItem` | Tappable list row: thumbnail (`imageUri`), `meta` overline, serif `title`, `description`, optional `titleMaxChars` / `descriptionMaxChars`, rule below |
+| `Stepper` | Generic step progress: takes `steps` (labels) and `current` (index); shows `01 / 03`, the current label and a 1 px progress rule sized by the number of steps |
+| `VideoFrame` | Letterboxed surface (6 px radius) for an `expo-video` player; never taller than `maxHeightRatio` of the screen (default 0.42) |
 
 Commons don't import app data (`store`, `services`, `hooks`, `db`) and never import specifics.
-Only `Typography` and `Icon` use React Native's `Text` and Ionicons directly; everything else
-goes through them.
+Components take everything they show through props: no translation keys, app constants or
+screen-specific spacing are hard-coded inside reusable components. Generic behaviour lives in
+a commons component (`Stepper`, `PageHeader`, `MediaItem`, …); a thin specifics component
+fills it with the app's data and texts (`StepIndicator`, `ArchiveHeader`, `VideoEntry`, …).
+
+Raw primitives live only inside commons: `Text` (→ `Typography`), Ionicons (→ `Icon`),
+`TextInput` (→ `Input`), `Pressable` (→ `Touchable`, `Button`), `ActivityIndicator`
+(→ `Spinner`), `expo-image` (→ `Thumbnail`), `Modal` (→ `Sheet`). Screens and specifics never
+import them, so changing a commons component changes it everywhere it's used.
 
 **`components/specifics/`** holds components that only make sense in this app, assembled from
 commons:
 
 | Component | Built from |
 | --- | --- |
-| `OptionRow` | `Pressable` + `Row` + `Icon` + `Typography` |
+| `ArchiveHeader` | `PageHeader` filled with the archive's texts: total clips, settings icon button, title, `+ NEW CLIP` |
+| `VideoEntry` / `VideoRow` | `MediaItem` filled from a `DiaryVideo` (still, date · length, title ≤ 30 chars, description ≤ 80 chars) |
+| `ActionRow` | `Row` + `Typography` + `Icon` + `Divider` (full-width typographic action, e.g. `EDIT DETAILS →`, `DELETE ×`) |
+| `EmptyState` | `Typography` only: accent overline, serif headline, message, optional action; `align` `start` or `center` |
+| `OptionRow` | `Pressable` + `Row` + `Typography`; the selected row is a full-width inverted (ink) band |
 | `InfoRow` | `Row` + `Typography` |
-| `SettingsSection` | `Section` + `Card` + `Divider` |
-| `EmptyState` | `IconBadge` + `Typography` |
-| `MetaItem` | `Row` + `Icon` + `Typography` |
+| `SettingsSection` | `Section` + `Divider` (full-width rules between rows, no cards) |
 | `VideoPlayer` | `VideoFrame` + an owned `expo-video` player |
-| `VideoCard` / `VideoRow` | `PressableScale` + `Card` + `Row` + `Badge` + `Typography` + `Icon` |
 | `MetadataForm` | `Stack` + `FormField` + `Input` + `Button` (react-hook-form + Yup) |
-| `StepIndicator` | `Row` + `Typography` |
-| `HeaderBackButton` | `Button` (`text` variant) + `router.back()`; Android header back button with a "Back" label (iOS keeps the native one with `headerBackTitle`) |
-| `TrimScrubber` | `Row` + `Badge` + `Typography` (+ its own gesture parts) |
+| `StepIndicator` | `Stepper` with the crop flow's translated step names (select, trim, details) |
+| `HeaderBackButton` | `Button` (`text` variant) + `router.back()`: the typographic `← BACK` action |
+| `ScreenHeader` | `Header` + `HeaderBackButton` inside a top safe area. Native stack headers are hidden app-wide, so every screen draws the same flat header on iOS and Android (no iOS 26 glass back button); the iOS edge-swipe back gesture still works |
+| `TrimScrubber` | film-strip track (sprocket bands, frames), accent selection window of `windowLength` seconds, `├──┤` bracket, start/end times; all texts come in through `labels`, `formatLength` and `formatRange` (+ its own gesture parts) |
 | `CropModal` | `Sheet` + `Header` + `Button` + `StepIndicator`; its steps live in `CropModal/Steps`: `PickerStep`, `TrimStep` (`VideoFrame` + `TrimScrubber` + `Button`), `DetailsStep` (`MetadataForm`) |
 
 Screens in `src/app/` can use both. Every component extends the props of what it wraps

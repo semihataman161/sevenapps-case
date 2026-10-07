@@ -1,5 +1,7 @@
 const en = {
   common: {
+    seconds_one: '{{count}} second',
+    seconds_other: '{{count}} seconds',
     back: 'Back',
     cancel: 'Cancel',
     close: 'Close',
@@ -12,14 +14,14 @@ const en = {
     editDetails: 'Edit details',
     settings: 'Settings',
     newClip: 'New clip',
-    chooseSeconds: 'Choose {{seconds}} seconds',
-    addDetails: 'Add details',
+  },
+  home: {
+    totalClips: 'Total clips:',
   },
   list: {
-    emptyTitle: 'No clips yet',
-    emptyMessage:
-      'Import a video, pick your favourite {{seconds}} seconds and keep it here with a note.',
-    emptyAction: 'Crop your first clip',
+    emptyTitle: 'No memories yet',
+    emptyMessage: 'Your first {{seconds}}-second story starts here.',
+    emptyHint: 'Tap “+ {{action}}” above to import your first video.',
     newClip: 'New clip',
     errorTitle: "Couldn't load your diary",
     errorMessage: 'Something went wrong while reading your saved clips.',
@@ -35,6 +37,7 @@ const en = {
     notFoundMessage: 'It may have been deleted.',
     backToDiary: 'Back to diary',
     clipLength: '{{duration}} clip',
+    sourceRange: 'From {{start}} to {{end}}',
     noDescription: 'No description yet — tap to add one.',
     edit: 'Edit details',
     delete: 'Delete clip',
@@ -63,6 +66,7 @@ const en = {
     segmentSelector: 'Segment selector',
     segmentRange: '{{start}} to {{end}}',
     segmentFrom: '{{duration}} from {{file}}',
+    segmentLabel: 'Segment',
     yourVideo: 'your video',
     cropAndSave: 'Crop & save',
     cropping: 'Cropping…',

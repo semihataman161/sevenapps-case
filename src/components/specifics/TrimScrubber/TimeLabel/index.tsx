@@ -12,7 +12,7 @@ export function TimeLabel({ label, value, alignRight = false }: TimeLabelProps) 
       <Typography variant="overline" tone="muted">
         {label}
       </Typography>
-      <Typography weight="semibold" style={{ fontVariant: ['tabular-nums'] }}>
+      <Typography variant="label" weight="medium" tabular className="mt-1">
         {value}
       </Typography>
     </View>

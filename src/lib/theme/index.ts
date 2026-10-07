@@ -1,28 +1,37 @@
 import { useColorScheme } from 'react-native';
 
-import type { ThemeColors, ThemePalette } from './types';
+import type { FontFamilies, ThemeColors, ThemePalette } from './types';
 
 export type * from './types';
 
 const palette: ThemePalette = {
   light: {
-    accent: '#6d5dfc',
-    text: '#111118',
-    muted: '#6b6b7b',
-    background: '#ffffff',
-    card: '#f4f4f7',
-    border: '#e4e4ea',
-    danger: '#e5484d',
+    background: '#F5F3EE',
+    surface: '#ECE9E2',
+    text: '#171717',
+    secondary: '#77736C',
+    muted: '#9A968F',
+    border: '#D8D4CC',
+    accent: '#A33A32',
+    inverse: '#F5F3EE',
   },
   dark: {
-    accent: '#8b7dff',
-    text: '#f4f4f7',
-    muted: '#9b9bab',
-    background: '#0b0b0f',
-    card: '#1a1a22',
-    border: '#2a2a35',
-    danger: '#ff6369',
+    background: '#121110',
+    surface: '#1D1B18',
+    text: '#EDEAE3',
+    secondary: '#A29D94',
+    muted: '#77726A',
+    border: '#2F2C28',
+    accent: '#D0685E',
+    inverse: '#121110',
   },
+};
+
+export const FONTS: FontFamilies = {
+  serif: 'DMSerifDisplay_400Regular',
+  sans: 'Inter_400Regular',
+  sansMedium: 'Inter_500Medium',
+  sansSemibold: 'Inter_600SemiBold',
 };
 
 export function useThemeColors(): ThemeColors {

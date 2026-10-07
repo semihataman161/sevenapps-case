@@ -2,8 +2,6 @@ import { useIsMutating } from '@tanstack/react-query';
 import { useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { CLIP_DURATION } from '@/lib';
-
 import { Button, Header, Sheet } from '@/components/commons';
 import { StepIndicator, type CropStep } from '../StepIndicator';
 import { Steps } from './Steps';
@@ -28,12 +26,6 @@ export function CropModal({ ref, ...props }: CropModalProps) {
 
   useImperativeHandle(ref, () => ({ show, hide }));
 
-  const titles: Record<CropStep, string> = {
-    0: t('nav.newClip'),
-    1: t('nav.chooseSeconds', { seconds: CLIP_DURATION }),
-    2: t('nav.addDetails'),
-  };
-
   const goBack = () => {
     if (!isCropping && step > 0) setStep((step - 1) as CropStep);
   };
@@ -47,16 +39,16 @@ export function CropModal({ ref, ...props }: CropModalProps) {
 
   const header = (
     <Header
-      title={titles[step]}
+      className="px-5"
+      title={t('nav.newClip')}
       left={
         step > 0 ? (
           <Button
             variant="text"
             title={t('common.back')}
-            icon="chevron-back"
+            icon="arrow-back"
             disabled={isCropping}
             onPress={goBack}
-            className="-ml-1.5"
           />
         ) : null
       }

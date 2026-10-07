@@ -2,6 +2,8 @@ import type { Translation } from '../types';
 
 const de: Translation = {
   common: {
+    seconds_one: '{{count}} Sekunde',
+    seconds_other: '{{count}} Sekunden',
     back: 'Zurück',
     cancel: 'Abbrechen',
     close: 'Schließen',
@@ -14,14 +16,14 @@ const de: Translation = {
     editDetails: 'Details bearbeiten',
     settings: 'Einstellungen',
     newClip: 'Neuer Clip',
-    chooseSeconds: '{{seconds}} Sekunden wählen',
-    addDetails: 'Details hinzufügen',
+  },
+  home: {
+    totalClips: 'Clips gesamt:',
   },
   list: {
-    emptyTitle: 'Noch keine Clips',
-    emptyMessage:
-      'Importiere ein Video, wähle deine liebsten {{seconds}} Sekunden und bewahre sie hier mit einer Notiz auf.',
-    emptyAction: 'Ersten Clip zuschneiden',
+    emptyTitle: 'Noch keine Erinnerungen',
+    emptyMessage: 'Deine erste {{seconds}}-Sekunden-Geschichte beginnt hier.',
+    emptyHint: 'Tippe oben auf „+ {{action}}“, um dein erstes Video zu importieren.',
     newClip: 'Neuer Clip',
     errorTitle: 'Tagebuch konnte nicht geladen werden',
     errorMessage: 'Beim Lesen deiner gespeicherten Clips ist etwas schiefgelaufen.',
@@ -37,6 +39,7 @@ const de: Translation = {
     notFoundMessage: 'Er wurde möglicherweise gelöscht.',
     backToDiary: 'Zurück zum Tagebuch',
     clipLength: '{{duration}} Clip',
+    sourceRange: 'Von {{start}} bis {{end}}',
     noDescription: 'Noch keine Beschreibung – tippe, um eine hinzuzufügen.',
     edit: 'Details bearbeiten',
     delete: 'Clip löschen',
@@ -67,6 +70,7 @@ const de: Translation = {
     segmentSelector: 'Abschnittsauswahl',
     segmentRange: '{{start}} bis {{end}}',
     segmentFrom: '{{duration}} aus {{file}}',
+    segmentLabel: 'Ausschnitt',
     yourVideo: 'deinem Video',
     cropAndSave: 'Zuschneiden & speichern',
     cropping: 'Wird zugeschnitten…',

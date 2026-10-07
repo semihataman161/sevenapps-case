@@ -3,6 +3,7 @@ export * from './id';
 export * from './layout';
 export * from './player';
 export * from './queryClient';
+export * from './text';
 export * from './theme';
 export * from './time';
 export * from './validation';

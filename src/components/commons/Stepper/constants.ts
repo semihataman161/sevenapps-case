@@ -1,0 +1,1 @@
+export const PROGRESS_ANIMATION_MS = 300;

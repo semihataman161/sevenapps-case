@@ -2,6 +2,8 @@ import type { Translation } from '../types';
 
 const tr: Translation = {
   common: {
+    seconds_one: '{{count}} saniye',
+    seconds_other: '{{count}} saniye',
     back: 'Geri',
     cancel: 'Vazgeç',
     close: 'Kapat',
@@ -14,14 +16,14 @@ const tr: Translation = {
     editDetails: 'Detayları düzenle',
     settings: 'Ayarlar',
     newClip: 'Yeni klip',
-    chooseSeconds: '{{seconds}} saniye seç',
-    addDetails: 'Detay ekle',
+  },
+  home: {
+    totalClips: 'Toplam klip:',
   },
   list: {
-    emptyTitle: 'Henüz klip yok',
-    emptyMessage:
-      'Bir video içe aktar, en sevdiğin {{seconds}} saniyeyi seç ve bir notla burada sakla.',
-    emptyAction: 'İlk klibini kırp',
+    emptyTitle: 'Henüz anı yok',
+    emptyMessage: 'İlk {{seconds}} saniyelik hikâyen burada başlıyor.',
+    emptyHint: 'İlk videonu eklemek için yukarıdaki “+ {{action}}” butonuna dokun.',
     newClip: 'Yeni klip',
     errorTitle: 'Günlüğün yüklenemedi',
     errorMessage: 'Kayıtlı kliplerin okunurken bir şeyler ters gitti.',
@@ -37,6 +39,7 @@ const tr: Translation = {
     notFoundMessage: 'Silinmiş olabilir.',
     backToDiary: 'Günlüğe dön',
     clipLength: '{{duration}} klip',
+    sourceRange: '{{start}} – {{end}} arası',
     noDescription: 'Henüz açıklama yok — eklemek için dokun.',
     edit: 'Detayları düzenle',
     delete: 'Klibi sil',
@@ -65,6 +68,7 @@ const tr: Translation = {
     segmentSelector: 'Bölüm seçici',
     segmentRange: '{{start}} – {{end}}',
     segmentFrom: '{{file}} videosundan {{duration}}',
+    segmentLabel: 'Kesit',
     yourVideo: 'seçtiğin video',
     cropAndSave: 'Kırp ve kaydet',
     cropping: 'Kırpılıyor…',

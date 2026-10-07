@@ -5,21 +5,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        accent: {
-          DEFAULT: '#6d5dfc',
-          soft: '#ece9ff',
-          dark: '#5546d8',
-        },
-        ink: {
-          DEFAULT: '#111118',
-          muted: '#6b6b7b',
-        },
-        surface: {
-          DEFAULT: '#ffffff',
-          muted: '#f4f4f7',
-          dark: '#0b0b0f',
-          'dark-muted': '#1a1a22',
-        },
+        paper: { DEFAULT: '#F5F3EE', dark: '#121110' },
+        surface: { DEFAULT: '#ECE9E2', dark: '#1D1B18' },
+        ink: { DEFAULT: '#171717', dark: '#EDEAE3' },
+        secondary: { DEFAULT: '#77736C', dark: '#A29D94' },
+        muted: { DEFAULT: '#9A968F', dark: '#77726A' },
+        rule: { DEFAULT: '#D8D4CC', dark: '#2F2C28' },
+        accent: { DEFAULT: '#A33A32', dark: '#D0685E' },
       },
     },
   },

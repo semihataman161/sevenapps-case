@@ -1,36 +1,17 @@
-import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { Row, Typography } from '@/components/commons';
-import { useUpperCase } from '@/i18n';
+import { Stepper } from '@/components/commons';
 
-import { StepDot } from './StepDot';
+import { STEPS } from './constants';
 import type { StepIndicatorProps } from './types';
 
 export type * from './types';
 
-const STEPS = ['select', 'trim', 'details'] as const;
-
 export function StepIndicator({ step, className = '', ...props }: StepIndicatorProps) {
   const { t } = useTranslation();
-  const upper = useUpperCase();
+  const labels = STEPS.map((key) => t(`crop.steps.${key}`));
 
   return (
-    <View className={`px-5 pb-2 pt-3 ${className}`} {...props}>
-      <Row gap={8} className="mb-2">
-        {STEPS.map((key, index) => (
-          <StepDot key={key} active={index <= step} />
-        ))}
-      </Row>
-      <Typography variant="overline" tone="muted">
-        {upper(
-          t('crop.stepLabel', {
-            current: step + 1,
-            total: STEPS.length,
-            label: t(`crop.steps.${STEPS[step]}`),
-          }),
-        )}
-      </Typography>
-    </View>
+    <Stepper steps={labels} current={step} className={`px-5 pb-6 pt-2 ${className}`} {...props} />
   );
 }

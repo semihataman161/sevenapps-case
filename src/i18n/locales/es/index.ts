@@ -2,6 +2,8 @@ import type { Translation } from '../types';
 
 const es: Translation = {
   common: {
+    seconds_one: '{{count}} segundo',
+    seconds_other: '{{count}} segundos',
     back: 'Atrás',
     cancel: 'Cancelar',
     close: 'Cerrar',
@@ -14,14 +16,14 @@ const es: Translation = {
     editDetails: 'Editar detalles',
     settings: 'Ajustes',
     newClip: 'Nuevo clip',
-    chooseSeconds: 'Elige {{seconds}} segundos',
-    addDetails: 'Añadir detalles',
+  },
+  home: {
+    totalClips: 'Total de clips:',
   },
   list: {
-    emptyTitle: 'Aún no hay clips',
-    emptyMessage:
-      'Importa un vídeo, elige tus {{seconds}} segundos favoritos y guárdalos aquí con una nota.',
-    emptyAction: 'Recorta tu primer clip',
+    emptyTitle: 'Aún no hay recuerdos',
+    emptyMessage: 'Tu primera historia de {{seconds}} segundos empieza aquí.',
+    emptyHint: 'Toca «+ {{action}}» arriba para importar tu primer vídeo.',
     newClip: 'Nuevo clip',
     errorTitle: 'No se pudo cargar tu diario',
     errorMessage: 'Algo salió mal al leer tus clips guardados.',
@@ -37,6 +39,7 @@ const es: Translation = {
     notFoundMessage: 'Puede que se haya eliminado.',
     backToDiary: 'Volver al diario',
     clipLength: 'Clip de {{duration}}',
+    sourceRange: 'De {{start}} a {{end}}',
     noDescription: 'Aún no hay descripción: toca para añadir una.',
     edit: 'Editar detalles',
     delete: 'Eliminar clip',
@@ -65,6 +68,7 @@ const es: Translation = {
     segmentSelector: 'Selector de fragmento',
     segmentRange: 'De {{start}} a {{end}}',
     segmentFrom: '{{duration}} de {{file}}',
+    segmentLabel: 'Fragmento',
     yourVideo: 'tu vídeo',
     cropAndSave: 'Recortar y guardar',
     cropping: 'Recortando…',

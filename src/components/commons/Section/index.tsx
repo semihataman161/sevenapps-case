@@ -8,7 +8,7 @@ export type * from './types';
 export function Section({
   title,
   titleVariant = 'overline',
-  titleTone = 'muted',
+  titleTone = 'secondary',
   titleWeight,
   className = '',
   children,
@@ -17,12 +17,7 @@ export function Section({
   return (
     <View className={className} {...props}>
       {title ? (
-        <Typography
-          variant={titleVariant}
-          tone={titleTone}
-          weight={titleWeight}
-          className="mb-2 ml-4"
-        >
+        <Typography variant={titleVariant} tone={titleTone} weight={titleWeight} className="mb-3">
           {title}
         </Typography>
       ) : null}

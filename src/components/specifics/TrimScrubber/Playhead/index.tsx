@@ -11,7 +11,7 @@ export function Playhead({ style }: PlayheadProps) {
     <Animated.View
       pointerEvents="none"
       style={[{ height: SCRUBBER_TRACK_HEIGHT }, style]}
-      className="absolute left-0 top-0 w-0.5 bg-white"
+      className="absolute left-0 top-0 w-px bg-white"
     />
   );
 }

@@ -1,5 +1,5 @@
-import type { VideoCardProps } from '../VideoCard';
+import type { VideoEntryProps } from '../VideoEntry';
 
-export type VideoRowProps = Omit<VideoCardProps, 'video'> & {
+export type VideoRowProps = Omit<VideoEntryProps, 'video'> & {
   id: string;
 };

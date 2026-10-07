@@ -7,7 +7,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CLIP_DURATION, MIN_SOURCE_DURATION, useBottomGap } from '@/lib';
 import { useCropDraftStore } from '@/store';
 
-import { Button, Icon, Typography } from '@/components/commons';
+import { Button, Typography } from '@/components/commons';
 import type { PickerStepProps } from './types';
 
 export type * from './types';
@@ -59,20 +59,14 @@ export function PickerStep({ onPicked, className = '', style, ...props }: Picker
       style={[{ paddingBottom: bottomGap }, style]}
       {...props}
     >
-      <View className="flex-1 items-center justify-center px-8">
-        <Animated.View
-          entering={FadeInDown.duration(400)}
-          className="mb-8 h-28 w-28 items-center justify-center rounded-[36px] bg-accent-soft dark:bg-surface-dark-muted"
-        >
-          <Icon name="film-outline" size={52} tone="accent" />
-        </Animated.View>
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
-          <Typography variant="display" className="mb-3 text-center">
+      <View className="flex-1 items-center justify-center px-5">
+        <Animated.View entering={FadeInDown.duration(400)}>
+          <Typography variant="headline" className="text-center">
             {t('crop.pickTitle')}
           </Typography>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(160).duration(400)}>
-          <Typography tone="muted" className="text-center leading-6">
+        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+          <Typography tone="secondary" className="mt-3 max-w-[320px] text-center">
             {t('crop.pickMessage', { seconds: CLIP_DURATION })}
           </Typography>
         </Animated.View>
@@ -86,7 +80,7 @@ export function PickerStep({ onPicked, className = '', style, ...props }: Picker
       <View className="px-5">
         <Button
           title={t('crop.chooseFromLibrary')}
-          icon="images-outline"
+          icon="arrow-forward"
           loading={isPicking}
           onPress={pickVideo}
         />

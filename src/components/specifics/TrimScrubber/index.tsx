@@ -1,47 +1,40 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useState } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { Badge, Row, Typography } from '@/components/commons';
-import { useUpperCase } from '@/i18n';
-import {
-  CLIP_DURATION,
-  clipLengthFor,
-  formatSeconds,
-  formatTime,
-  SCRUBBER_TRACK_HEIGHT,
-} from '@/lib';
+import { Row, Typography } from '@/components/commons';
+import { formatTime, SCRUBBER_TRACK_HEIGHT } from '@/lib';
 
+import { Bracket } from './Bracket';
 import { Filmstrip } from './Filmstrip';
 import { Grip } from './Grip';
 import { Playhead } from './Playhead';
 import { Shade } from './Shade';
 import { TimeLabel } from './TimeLabel';
+import { SCRUB_EVERY_N_EVENTS } from './constants';
 import type { TrimScrubberProps } from './types';
 
 export type * from './types';
 
-const SCRUB_EVERY_N_EVENTS = 4;
-
 export function TrimScrubber({
   player,
   duration,
+  windowLength,
   start,
   frames,
+  labels,
+  formatLength,
+  formatRange,
   onScrub,
   onChange,
 }: TrimScrubberProps) {
-  const { t } = useTranslation();
-  const upper = useUpperCase();
   const [trackWidth, setTrackWidth] = useState(0);
   const [dragStart, setDragStart] = useState<number | null>(null);
 
-  const clipLength = clipLengthFor(duration);
-  const windowWidth = duration > 0 ? (trackWidth * clipLength) / duration : trackWidth;
+  const windowWidth = duration > 0 ? (trackWidth * windowLength) / duration : trackWidth;
   const maxX = Math.max(0, trackWidth - windowWidth);
 
   const x = useSharedValue(0);
@@ -129,6 +122,7 @@ export function TrimScrubber({
   ]);
 
   const windowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
+  const bracketStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
   const leftShadeStyle = useAnimatedStyle(() => ({ width: x.get() }));
   const rightShadeStyle = useAnimatedStyle(() => ({ left: x.get() + windowWidth }));
   const playheadStyle = useAnimatedStyle(() => ({
@@ -138,23 +132,18 @@ export function TrimScrubber({
 
   const onLayout = (event: LayoutChangeEvent) => setTrackWidth(event.nativeEvent.layout.width);
   const previewStart = dragStart ?? start;
-  const previewEnd = Math.min(previewStart + clipLength, duration);
+  const previewEnd = Math.min(previewStart + windowLength, duration);
 
   return (
     <View>
       <GestureDetector gesture={gesture}>
         <View
           onLayout={onLayout}
-          className="overflow-hidden rounded-2xl bg-surface-muted dark:bg-surface-dark-muted"
+          className="overflow-hidden rounded-sm"
           style={{ height: SCRUBBER_TRACK_HEIGHT }}
           accessibilityRole="adjustable"
-          accessibilityLabel={t('crop.segmentSelector')}
-          accessibilityValue={{
-            text: t('crop.segmentRange', {
-              start: formatTime(previewStart),
-              end: formatTime(previewEnd),
-            }),
-          }}
+          accessibilityLabel={labels.selector}
+          accessibilityValue={{ text: formatRange(previewStart, previewEnd) }}
         >
           <Filmstrip frames={frames} />
           <Shade style={leftShadeStyle} className="left-0" />
@@ -162,7 +151,7 @@ export function TrimScrubber({
           <Animated.View
             pointerEvents="none"
             style={[{ width: windowWidth, height: SCRUBBER_TRACK_HEIGHT }, windowStyle]}
-            className="absolute left-0 top-0 flex-row justify-between rounded-2xl border-[3px] border-accent"
+            className="absolute left-0 top-0 flex-row justify-between rounded-sm border-y-2 border-accent dark:border-accent-dark"
           >
             <Grip />
             <Grip />
@@ -171,16 +160,21 @@ export function TrimScrubber({
         </View>
       </GestureDetector>
 
-      <Row justify="between" className="mt-3">
-        <TimeLabel label={upper(t('crop.start'))} value={formatTime(previewStart, true)} />
-        <Badge label={t('crop.selected', { duration: formatSeconds(previewEnd - previewStart) })} />
-        <TimeLabel label={upper(t('crop.end'))} value={formatTime(previewEnd, true)} alignRight />
+      <Bracket
+        style={bracketStyle}
+        width={windowWidth}
+        label={formatLength(previewEnd - previewStart)}
+      />
+
+      <Row justify="between" className="mt-5">
+        <TimeLabel label={labels.start} value={formatTime(previewStart, true)} />
+        <TimeLabel label={labels.end} value={formatTime(previewEnd, true)} alignRight />
       </Row>
-      <Typography variant="caption" tone="muted" className="mt-3 text-center">
-        {maxX > 0
-          ? t('crop.dragHint', { seconds: clipLength })
-          : t('crop.shortHint', { seconds: CLIP_DURATION })}
-      </Typography>
+      {labels.hint ? (
+        <Typography variant="caption" tone="muted" className="mt-5">
+          {labels.hint}
+        </Typography>
+      ) : null}
     </View>
   );
 }

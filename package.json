@@ -11,6 +11,8 @@
     "test": "jest"
   },
   "dependencies": {
+    "@expo-google-fonts/dm-serif-display": "^0.4.2",
+    "@expo-google-fonts/inter": "^0.4.2",
     "@expo/vector-icons": "^15.0.2",
     "@hookform/resolvers": "^5.9.1",
     "@shopify/flash-list": "2.0.2",

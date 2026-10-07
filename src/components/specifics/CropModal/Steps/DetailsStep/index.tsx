@@ -7,7 +7,7 @@ import { formatSeconds, formatTime, segmentBounds, type MetadataFormValues } fro
 import { describeCropError } from '@/services';
 import { useCropDraftStore } from '@/store';
 
-import { Icon, KeyboardAwareScroll, Row, Typography } from '@/components/commons';
+import { Divider, KeyboardAwareScroll, Typography } from '@/components/commons';
 import { MetadataForm } from '../../../MetadataForm';
 import type { DetailsStepProps } from './types';
 
@@ -38,24 +38,25 @@ export function DetailsStep({
 
   return (
     <KeyboardAwareScroll contentContainerClassName={contentContainerClassName} {...props}>
-      <Row gap={12} className="mb-6 rounded-2xl bg-accent-soft p-4 dark:bg-surface-dark-muted">
-        <Icon name="cut-outline" size={22} tone="accent" />
-        <View className="flex-1">
-          <Typography variant="label" weight="semibold">
-            {formatTime(bounds.start, true)} – {formatTime(bounds.end, true)}
-          </Typography>
-          <Typography variant="caption" tone="muted">
-            {t('crop.segmentFrom', {
-              duration: formatSeconds(bounds.end - bounds.start),
-              file: source.fileName ?? t('crop.yourVideo'),
-            })}
-          </Typography>
-        </View>
-      </Row>
+      <View className="mb-10">
+        <Typography variant="overline" tone="secondary">
+          {t('crop.segmentLabel')}
+        </Typography>
+        <Typography variant="title" tabular className="mt-2">
+          {`${formatTime(bounds.start, true)} — ${formatTime(bounds.end, true)}`}
+        </Typography>
+        <Typography variant="caption" tone="secondary" className="mt-1.5">
+          {t('crop.segmentFrom', {
+            duration: formatSeconds(bounds.end - bounds.start),
+            file: source.fileName ?? t('crop.yourVideo'),
+          })}
+        </Typography>
+        <Divider className="mt-6" />
+      </View>
 
       <MetadataForm
         submitLabel={isPending ? t('crop.cropping') : t('crop.cropAndSave')}
-        submitIcon="cut-outline"
+        submitIcon="arrow-forward"
         isSubmitting={isPending}
         submitError={cropMutation.isError ? t(describeCropError(cropMutation.error)) : null}
         onSubmit={onSubmit}

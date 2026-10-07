@@ -1,39 +1,43 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useHeaderHeight } from 'expo-router/react-navigation';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/commons';
-import { EmptyState, MetaItem, VideoPlayer } from '@/components/specifics';
+import { Button, Divider, Row, Typography } from '@/components/commons';
+import { ActionRow, EmptyState, ScreenHeader, VideoPlayer } from '@/components/specifics';
 import { useDeleteVideoMutation } from '@/hooks';
-import { formatDate, formatSeconds } from '@/lib';
+import { formatDate, formatTime, wholeSeconds } from '@/lib';
 import { videoUri } from '@/services';
 import { useVideo } from '@/store';
 import type { IdRouteParams } from '@/types';
 
 export default function VideoDetailsScreen() {
   const { t, i18n } = useTranslation();
-  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<IdRouteParams>();
   const video = useVideo(id);
   const deleteMutation = useDeleteVideoMutation();
 
   if (!video) {
     return (
-      <View className="flex-1 justify-center" style={{ paddingBottom: headerHeight }}>
-        <EmptyState
-          icon="help-circle-outline"
-          title={t('video.notFoundTitle')}
-          message={t('video.notFoundMessage')}
-          action={
-            <Button
-              title={t('video.backToDiary')}
-              variant="secondary"
-              onPress={() => router.back()}
-            />
-          }
-        />
+      <View className="flex-1">
+        <ScreenHeader />
+        <View className="flex-1 justify-center" style={{ paddingBottom: insets.top + 48 }}>
+          <EmptyState
+            className="px-5"
+            title={t('video.notFoundTitle')}
+            message={t('video.notFoundMessage')}
+            action={
+              <Button
+                variant="text"
+                icon="arrow-back"
+                title={t('video.backToDiary')}
+                onPress={() => router.back()}
+              />
+            }
+          />
+        </View>
       </View>
     );
   }
@@ -55,53 +59,66 @@ export default function VideoDetailsScreen() {
     ]);
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerClassName="px-5 pb-12 pt-2"
-    >
-      <VideoPlayer
-        uri={videoUri(video.fileName)}
-        aspectRatio={video.width && video.height ? video.width / video.height : undefined}
-        autoPlay
-        loop
-      />
+    <View className="flex-1">
+      <ScreenHeader />
+      <ScrollView
+        contentContainerClassName="px-5 pt-4"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}
+      >
+        <Typography variant="overline" tone="secondary" tabular className="mb-4">
+          {formatDate(video.createdAt, i18n.language)}
+        </Typography>
 
-      <Animated.View entering={FadeInDown.delay(100).duration(350)} className="mt-6">
-        <Text className="text-2xl font-bold text-ink dark:text-white">{video.name}</Text>
-        <View className="mt-2 flex-row items-center gap-3">
-          <MetaItem icon="calendar-outline" text={formatDate(video.createdAt, i18n.language)} />
-          <MetaItem
-            icon="time-outline"
-            text={t('video.clipLength', { duration: formatSeconds(video.duration) })}
-          />
-        </View>
-
-        {video.description ? (
-          <Text className="mt-5 text-base leading-7 text-ink dark:text-neutral-200">
-            {video.description}
-          </Text>
-        ) : (
-          <Pressable onPress={openEditor}>
-            <Text className="mt-5 text-base italic text-ink-muted">{t('video.noDescription')}</Text>
-          </Pressable>
-        )}
-      </Animated.View>
-
-      <Animated.View entering={FadeInDown.delay(200).duration(350)} className="mt-10 gap-3">
-        <Button
-          title={t('video.edit')}
-          icon="create-outline"
-          variant="secondary"
-          onPress={openEditor}
+        <VideoPlayer
+          uri={videoUri(video.fileName)}
+          aspectRatio={video.width && video.height ? video.width / video.height : undefined}
+          autoPlay
+          loop
         />
-        <Button
-          title={t('video.delete')}
-          icon="trash-outline"
-          variant="danger"
-          loading={deleteMutation.isPending}
-          onPress={confirmDelete}
-        />
-      </Animated.View>
-    </ScrollView>
+
+        <Animated.View entering={FadeIn.delay(100).duration(400)}>
+          <Typography variant="headline" className="mt-8">
+            {video.name}
+          </Typography>
+
+          {video.description ? (
+            <Typography className="mt-4">{video.description}</Typography>
+          ) : (
+            <Button
+              variant="text"
+              title={t('video.noDescription')}
+              textVariant="body"
+              textTone="muted"
+              onPress={openEditor}
+              className="mt-4 self-start"
+            />
+          )}
+
+          <Row gap={16} className="mt-8 flex-wrap">
+            <Typography variant="overline" tabular>
+              {t('common.seconds', { count: wholeSeconds(video.duration) })}
+            </Typography>
+            <Typography variant="overline" tone="secondary" tabular>
+              {t('video.sourceRange', {
+                start: formatTime(video.sourceStart, true),
+                end: formatTime(video.sourceStart + video.duration, true),
+              })}
+            </Typography>
+          </Row>
+
+          <View className="mt-10">
+            <Divider />
+            <ActionRow label={t('video.edit')} icon="arrow-forward" onPress={openEditor} />
+            <ActionRow
+              label={t('video.delete')}
+              icon="close"
+              tone="danger"
+              loading={deleteMutation.isPending}
+              onPress={confirmDelete}
+            />
+          </View>
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 }

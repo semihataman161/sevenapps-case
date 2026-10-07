@@ -1,32 +1,36 @@
 import { useEvent } from 'expo';
 import { useVideoPlayer } from 'expo-video';
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { useFilmstrip } from '@/hooks';
 import {
+  CLIP_DURATION,
+  clipLengthFor,
   configurePlayer,
+  formatTime,
   pauseSafely,
   seekTo,
   segmentBounds,
   useBottomGap,
-  useThemeColors,
+  wholeSeconds,
 } from '@/lib';
 import { useCropDraftStore } from '@/store';
 
-import { Button, Icon, Typography, VideoFrame } from '@/components/commons';
+import { Button, Icon, Spinner, Touchable, Typography, VideoFrame } from '@/components/commons';
 import { TrimScrubber } from '../../../TrimScrubber';
+import {
+  FRAME_COUNT,
+  LOOP_LEAD,
+  MAX_LOOKAHEAD,
+  SEEK_SETTLE_MS,
+  TIME_UPDATE_INTERVAL,
+} from './constants';
 import type { TrimStepProps } from './types';
 
 export type * from './types';
-
-const TIME_UPDATE_INTERVAL = 0.1;
-const LOOP_LEAD = Platform.OS === 'android' ? 0.07 : 1 / 60;
-const MAX_LOOKAHEAD = 0.15;
-const SEEK_SETTLE_MS = 150;
-const FRAME_COUNT = 8;
 
 export function TrimStep({
   source,
@@ -37,7 +41,6 @@ export function TrimStep({
   ...props
 }: TrimStepProps) {
   const { t } = useTranslation();
-  const colors = useThemeColors();
   const bottomGap = useBottomGap();
   const start = useCropDraftStore((s) => s.start);
   const setStart = useCropDraftStore((s) => s.setStart);
@@ -49,6 +52,7 @@ export function TrimStep({
   const { status } = useEvent(player, 'statusChange', { status: player.status });
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
   const bounds = segmentBounds(start, source.duration);
+  const windowLength = clipLengthFor(source.duration);
 
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
@@ -138,8 +142,10 @@ export function TrimStep({
         style={[{ paddingBottom: bottomGap }, style]}
         {...props}
       >
-        <ActivityIndicator size="large" color={colors.accent} />
-        <Typography tone="muted">{t('crop.preparing')}</Typography>
+        <Spinner />
+        <Typography variant="overline" tone="secondary">
+          {t('crop.preparing')}
+        </Typography>
       </View>
     );
   }
@@ -152,7 +158,8 @@ export function TrimStep({
       {...props}
     >
       <ScrollView contentContainerClassName="grow justify-center px-5 py-4" bounces={false}>
-        <Pressable
+        <Touchable
+          pressedOpacity={1}
           onPress={togglePlayback}
           accessibilityLabel={isPlaying ? t('crop.pause') : t('crop.play')}
         >
@@ -168,25 +175,39 @@ export function TrimStep({
               pointerEvents="none"
               className="absolute inset-0 items-center justify-center"
             >
-              <View className="h-16 w-16 items-center justify-center rounded-full bg-black/50">
-                <Icon name="play" size={30} tone="inverse" style={{ marginLeft: 4 }} />
+              <View className="h-12 w-12 items-center justify-center rounded-sm bg-black/55">
+                <Icon name="play" size={22} color="#F5F3EE" style={{ marginLeft: 2 }} />
               </View>
             </Animated.View>
           ) : null}
-        </Pressable>
+        </Touchable>
 
         {status === 'error' ? (
-          <Typography variant="label" tone="danger" className="mt-4 text-center">
+          <Typography variant="label" tone="danger" className="mt-4">
             {t('crop.playbackError')}
           </Typography>
         ) : null}
 
-        <View className="mt-6">
+        <View className="mt-8">
           <TrimScrubber
             player={player}
             duration={source.duration}
+            windowLength={windowLength}
             start={start}
             frames={filmstrip.frames}
+            labels={{
+              selector: t('crop.segmentSelector'),
+              start: t('crop.start'),
+              end: t('crop.end'),
+              hint:
+                windowLength < source.duration
+                  ? t('crop.dragHint', { seconds: windowLength })
+                  : t('crop.shortHint', { seconds: CLIP_DURATION }),
+            }}
+            formatLength={(seconds) => t('common.seconds', { count: wholeSeconds(seconds) })}
+            formatRange={(from, to) =>
+              t('crop.segmentRange', { start: formatTime(from), end: formatTime(to) })
+            }
             onScrub={handleScrub}
             onChange={handleChange}
           />

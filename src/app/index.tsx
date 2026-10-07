@@ -1,17 +1,20 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router, Stack } from 'expo-router';
-import { useHeaderHeight } from 'expo-router/react-navigation';
-import { useCallback, useRef } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { router } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 
-import { Button } from '@/components/commons';
-import { CropModal, EmptyState, VideoRow, type CropModalRef } from '@/components/specifics';
-import { CLIP_DURATION, useBottomGap, useThemeColors } from '@/lib';
+import { Button, Spinner } from '@/components/commons';
+import {
+  ArchiveHeader,
+  CropModal,
+  EmptyState,
+  VideoRow,
+  type CropModalRef,
+} from '@/components/specifics';
+import { CLIP_DURATION } from '@/lib';
 import { useVideoStore } from '@/store';
 
 function openVideo(id: string) {
@@ -24,16 +27,15 @@ function openSettings() {
 
 export default function VideoListScreen() {
   const { t } = useTranslation();
-  const headerHeight = useHeaderHeight();
-  const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const ids = useVideoStore((s) => s.ids);
   const status = useVideoStore((s) => s.status);
   const hydrate = useVideoStore((s) => s.hydrate);
-  const insets = useSafeAreaInsets();
-  const bottomGap = useBottomGap();
   const cropModalRef = useRef<CropModalRef>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const openCropModal = () => cropModalRef.current?.show();
+  const total = ids.length;
 
   const renderItem = useCallback<ListRenderItem<string>>(
     ({ item }) => <VideoRow id={item} onPress={openVideo} />,
@@ -43,69 +45,58 @@ export default function VideoListScreen() {
   if (status === 'idle' || status === 'loading') {
     return (
       <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
+        <Spinner />
       </View>
     );
   }
 
+  const header = (
+    <ArchiveHeader count={total} onNewClip={openCropModal} onOpenSettings={openSettings} />
+  );
+
   return (
-    <View className="flex-1 bg-surface dark:bg-surface-dark">
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Pressable
-              onPress={openSettings}
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel={t('nav.settings')}
-            >
-              <Ionicons name="settings-outline" size={24} color={colors.accent} />
-            </Pressable>
-          ),
-        }}
-      />
-      {ids.length > 0 ? (
+    <View className="flex-1">
+      {total > 0 ? (
         <FlashList
           data={ids}
           keyExtractor={(id) => id}
           renderItem={renderItem}
-          contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={{ paddingTop: 8, paddingBottom: insets.bottom + bottomGap + 84 }}
+          ListHeaderComponent={header}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}
         />
       ) : (
-        <View className="flex-1 justify-center" style={{ paddingBottom: headerHeight }}>
-          {status === 'error' ? (
-            <EmptyState
-              icon="alert-circle-outline"
-              title={t('list.errorTitle')}
-              message={t('list.errorMessage')}
-              action={<Button title={t('common.tryAgain')} variant="secondary" onPress={hydrate} />}
-            />
-          ) : (
-            <EmptyState
-              icon="videocam-outline"
-              title={t('list.emptyTitle')}
-              message={t('list.emptyMessage', { seconds: CLIP_DURATION })}
-              action={<Button title={t('list.emptyAction')} icon="add" onPress={openCropModal} />}
-            />
-          )}
+        <View className="flex-1">
+          <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+            {header}
+          </View>
+          <View className="flex-1 justify-center" style={{ paddingBottom: headerHeight }}>
+            {status === 'error' ? (
+              <EmptyState
+                className="px-5"
+                align="center"
+                eyebrow={t('list.errorTitle')}
+                title={t('list.errorMessage')}
+                action={
+                  <Button
+                    variant="text"
+                    icon="refresh"
+                    title={t('common.tryAgain')}
+                    onPress={hydrate}
+                  />
+                }
+              />
+            ) : (
+              <EmptyState
+                className="px-5"
+                align="center"
+                eyebrow={t('list.emptyTitle')}
+                title={t('list.emptyMessage', { seconds: CLIP_DURATION })}
+                message={t('list.emptyHint', { action: t('list.newClip') })}
+              />
+            )}
+          </View>
         </View>
       )}
-
-      {ids.length > 0 ? (
-        <Animated.View
-          entering={FadeInUp.springify()}
-          className="absolute inset-x-0 px-5"
-          style={{ bottom: insets.bottom + bottomGap }}
-        >
-          <Button
-            title={t('list.newClip')}
-            icon="add"
-            onPress={openCropModal}
-            className="shadow-lg shadow-accent/30"
-          />
-        </Animated.View>
-      ) : null}
 
       <CropModal ref={cropModalRef} />
     </View>

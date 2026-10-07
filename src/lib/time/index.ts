@@ -23,6 +23,14 @@ export function formatSeconds(seconds: number): string {
   return `${(Math.round(safe * 10) / 10).toFixed(1)}s`;
 }
 
+export function wholeSeconds(seconds: number): number {
+  return Number.isFinite(seconds) && seconds > 0 ? Math.round(seconds) : 0;
+}
+
+export function formatIndex(value: number): string {
+  return Math.max(0, Math.floor(value)).toString().padStart(2, '0');
+}
+
 export function clipLengthFor(sourceDuration: number): number {
   return Math.min(CLIP_DURATION, Math.max(0, sourceDuration));
 }
@@ -34,7 +42,7 @@ export function clampSegmentStart(start: number, sourceDuration: number): number
 
 export function formatDate(timestamp: number, locale?: string): string {
   return new Date(timestamp).toLocaleDateString(locale, {
-    day: 'numeric',
+    day: '2-digit',
     month: 'short',
     year: 'numeric',
   });

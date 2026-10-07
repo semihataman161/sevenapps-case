@@ -1,4 +1,12 @@
-import { clampSegmentStart, clipLengthFor, formatSeconds, formatTime, segmentBounds } from '@/lib';
+import {
+  clampSegmentStart,
+  clipLengthFor,
+  formatIndex,
+  formatSeconds,
+  formatTime,
+  segmentBounds,
+  wholeSeconds,
+} from '@/lib';
 
 describe('formatTime', () => {
   it('formats minutes and seconds, rounding to the nearest second', () => {
@@ -45,5 +53,22 @@ describe('segment math', () => {
     expect(start).toBe(15);
     expect(end).toBeLessThan(20);
     expect(end).toBeGreaterThan(19.9);
+  });
+});
+
+describe('wholeSeconds', () => {
+  it('rounds to whole seconds and never goes below zero', () => {
+    expect(wholeSeconds(4.95)).toBe(5);
+    expect(wholeSeconds(4.4)).toBe(4);
+    expect(wholeSeconds(-1)).toBe(0);
+    expect(wholeSeconds(Number.NaN)).toBe(0);
+  });
+});
+
+describe('formatIndex', () => {
+  it('pads to two digits', () => {
+    expect(formatIndex(3)).toBe('03');
+    expect(formatIndex(12)).toBe('12');
+    expect(formatIndex(120)).toBe('120');
   });
 });

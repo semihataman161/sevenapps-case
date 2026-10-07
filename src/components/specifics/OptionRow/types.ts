@@ -1,11 +1,7 @@
-import type { PressableProps } from 'react-native';
+import type { TouchableProps } from '@/components/commons';
 
-import type { IconName } from '@/types';
-
-export type OptionRowProps = Omit<PressableProps, 'children'> & {
+export type OptionRowProps = Omit<TouchableProps, 'children'> & {
   label: string;
   hint?: string;
-  icon?: IconName;
   selected: boolean;
-  className?: string;
 };

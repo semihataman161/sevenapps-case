@@ -11,7 +11,7 @@ export function Shade({ style, className }: ShadeProps) {
     <Animated.View
       pointerEvents="none"
       style={[{ height: SCRUBBER_TRACK_HEIGHT }, style]}
-      className={`absolute top-0 bg-black/55 ${className}`}
+      className={`absolute top-0 bg-paper/75 dark:bg-black/65 ${className}`}
     />
   );
 }

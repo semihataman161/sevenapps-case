@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import type { ViewProps } from 'react-native';
 
-import type { IconName } from '@/types';
+export type EmptyStateAlign = 'start' | 'center';
 
 export type EmptyStateProps = ViewProps & {
-  icon: IconName;
+  eyebrow?: string;
   title: string;
-  message: string;
+  message?: string;
   action?: ReactNode;
+  align?: EmptyStateAlign;
   className?: string;
 };

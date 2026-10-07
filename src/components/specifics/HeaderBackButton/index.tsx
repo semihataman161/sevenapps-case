@@ -21,9 +21,9 @@ export function HeaderBackButton({
     <Button
       variant="text"
       title={title ?? t('common.back')}
-      icon="chevron-back"
+      icon="arrow-back"
       onPress={() => router.back()}
-      className={`-ml-1.5 mr-4 ${className}`}
+      className={className}
       {...props}
     />
   );

@@ -1,33 +1,44 @@
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { IconBadge, Typography } from '@/components/commons';
+import { Typography } from '@/components/commons';
 
+import { alignClasses } from './styles';
 import type { EmptyStateProps } from './types';
 
 export type * from './types';
 
 export function EmptyState({
-  icon,
+  eyebrow,
   title,
   message,
   action,
+  align = 'start',
   className = '',
   ...props
 }: EmptyStateProps) {
+  const classes = alignClasses[align];
+
   return (
     <Animated.View
-      entering={FadeInDown.duration(400)}
-      className={`items-center px-10 py-16 ${className}`}
+      entering={FadeIn.duration(400)}
+      className={`${classes.container} ${className}`}
       {...props}
     >
-      <IconBadge icon={icon} className="mb-5" />
-      <Typography variant="title" className="mb-2 text-center">
+      {eyebrow ? (
+        <Typography variant="overline" tone="accent" className={`mb-4 ${classes.text}`}>
+          {eyebrow}
+        </Typography>
+      ) : null}
+      <Typography variant="headline" className={`max-w-[320px] ${classes.text}`}>
         {title}
       </Typography>
-      <Typography tone="muted" className="mb-8 text-center leading-6">
-        {message}
-      </Typography>
-      {action}
+      {message ? (
+        <Typography tone="secondary" className={`mt-3 max-w-[300px] ${classes.text}`}>
+          {message}
+        </Typography>
+      ) : null}
+      {action ? <View className="mt-8">{action}</View> : null}
     </Animated.View>
   );
 }

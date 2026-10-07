@@ -32,7 +32,7 @@ export function MetadataForm({
   });
 
   return (
-    <Stack gap={20}>
+    <Stack gap={32}>
       <Field
         control={control}
         name="name"
@@ -55,7 +55,7 @@ export function MetadataForm({
       {submitError ? (
         <Animated.View
           entering={FadeIn}
-          className="rounded-2xl bg-red-50 px-4 py-3 dark:bg-red-950"
+          className="border-l-2 border-accent pl-3 dark:border-accent-dark"
           accessibilityLiveRegion="polite"
         >
           <Typography variant="label" tone="danger">

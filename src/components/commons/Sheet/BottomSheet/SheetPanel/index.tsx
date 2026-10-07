@@ -15,15 +15,11 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { useThemeColors } from '@/lib';
 
+import { CORNER_RADIUS, TOP_GAP } from './styles';
+import { ANIMATION_MS, DISMISS_DISTANCE, DISMISS_VELOCITY } from './constants';
 import type { SheetPanelProps } from './types';
 
 export type * from './types';
-
-const TOP_GAP = 40;
-const CORNER_RADIUS = 24;
-const ANIMATION_MS = 280;
-const DISMISS_DISTANCE = 120;
-const DISMISS_VELOCITY = 1000;
 
 export function SheetPanel({
   visible,
@@ -79,7 +75,7 @@ export function SheetPanel({
         pointerEvents="none"
         className="absolute inset-0"
       >
-        <Animated.View style={backdropStyle} className="flex-1 bg-black/50" />
+        <Animated.View style={backdropStyle} className="flex-1 bg-black/40" />
       </Animated.View>
       <Animated.View
         entering={SlideInDown.duration(ANIMATION_MS)}
@@ -102,7 +98,7 @@ export function SheetPanel({
             <View>
               <View className="items-center pb-1 pt-2">
                 <View
-                  className="h-1 w-10 rounded-full"
+                  className="h-[3px] w-9 rounded-sm"
                   style={{ backgroundColor: colors.border }}
                 />
               </View>

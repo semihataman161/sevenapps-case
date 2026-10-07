@@ -10,13 +10,13 @@ export function Header({
   title,
   left,
   right,
-  titleVariant = 'body',
-  titleWeight = 'semibold',
+  titleVariant = 'action',
+  titleWeight,
   className = '',
   ...props
 }: HeaderProps) {
   return (
-    <Row gap={8} className={`h-14 px-4 ${className}`} {...props}>
+    <Row gap={8} className={`h-12 ${className}`} {...props}>
       <View className="flex-1 items-start">{left}</View>
       <Typography
         variant={titleVariant}

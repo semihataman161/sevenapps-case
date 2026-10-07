@@ -10,29 +10,29 @@ export function FormField({
   label,
   counter,
   error,
-  labelVariant = 'label',
-  labelWeight = 'semibold',
+  labelVariant = 'overline',
+  labelWeight,
   counterVariant = 'caption',
-  errorVariant = 'label',
+  errorVariant = 'caption',
   className = '',
   children,
   ...props
 }: FormFieldProps) {
   return (
     <View className={className} {...props}>
-      <Row justify="between" align="end" className="mb-2">
-        <Typography variant={labelVariant} weight={labelWeight}>
+      <Row justify="between" align="end">
+        <Typography variant={labelVariant} weight={labelWeight} tone="secondary">
           {label}
         </Typography>
         {counter ? (
-          <Typography variant={counterVariant} tone="muted">
+          <Typography variant={counterVariant} tone="muted" tabular>
             {counter}
           </Typography>
         ) : null}
       </Row>
       {children}
       {error ? (
-        <Typography variant={errorVariant} tone="danger" className="mt-1.5">
+        <Typography variant={errorVariant} tone="danger" className="mt-2">
           {error}
         </Typography>
       ) : null}
