@@ -1,1 +1,1 @@
-export const LINE = 'bg-accent dark:bg-accent-dark';
+export const LINE = 'bg-accent';

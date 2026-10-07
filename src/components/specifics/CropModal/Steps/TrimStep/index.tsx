@@ -9,7 +9,9 @@ import { useFilmstrip } from '@/hooks';
 import {
   CLIP_DURATION,
   clipLengthFor,
+  cn,
   formatTime,
+  palette,
   segmentBounds,
   useBottomGap,
   wholeSeconds,
@@ -138,7 +140,7 @@ export function TrimStep({
   if (isPreparing) {
     return (
       <View
-        className={`flex-1 items-center justify-center gap-4 ${className}`}
+        className={cn('flex-1 items-center justify-center gap-4', className)}
         style={[{ paddingBottom: bottomGap }, style]}
         {...props}
       >
@@ -153,7 +155,7 @@ export function TrimStep({
   return (
     <Animated.View
       entering={FadeIn.duration(250)}
-      className={`flex-1 ${className}`}
+      className={cn('flex-1', className)}
       style={[{ paddingBottom: bottomGap }, style]}
       {...props}
     >
@@ -176,7 +178,7 @@ export function TrimStep({
               className="absolute inset-0 items-center justify-center"
             >
               <View className="h-12 w-12 items-center justify-center rounded-sm bg-black/55">
-                <Icon name="play" size={22} color="#F5F3EE" style={{ marginLeft: 2 }} />
+                <Icon name="play" size={22} color={palette.light.paper} style={{ marginLeft: 2 }} />
               </View>
             </Animated.View>
           ) : null}

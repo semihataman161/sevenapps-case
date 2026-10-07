@@ -77,13 +77,13 @@ function RootNavigator() {
     <ThemeProvider
       value={{
         ...baseTheme,
-        colors: { ...baseTheme.colors, primary: colors.text, background: colors.background },
+        colors: { ...baseTheme.colors, primary: colors.ink, background: colors.paper },
       }}
     >
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: colors.background },
+          contentStyle: { backgroundColor: colors.paper },
         }}
       >
         <Stack.Screen name="videos/[id]/edit" options={{ presentation: 'modal' }} />

@@ -55,7 +55,7 @@ export function MetadataForm({
       {submitError ? (
         <Animated.View
           entering={FadeIn}
-          className="border-l-2 border-accent pl-3 dark:border-accent-dark"
+          className="border-l-2 border-accent pl-3"
           accessibilityLiveRegion="polite"
         >
           <Typography variant="label" tone="danger">

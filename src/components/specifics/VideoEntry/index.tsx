@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { MediaItem } from '@/components/commons';
-import { formatDate, wholeSeconds } from '@/lib';
+import { cn, formatDate, wholeSeconds } from '@/lib';
 import { videoService } from '@/services';
 
 import { DESCRIPTION_MAX_CHARS, TITLE_MAX_CHARS } from './constants';
@@ -24,7 +24,7 @@ export function VideoEntry({ video, onPress, className = '', ...props }: VideoEn
       descriptionMaxChars={DESCRIPTION_MAX_CHARS}
       accessibilityLabel={t('list.openClip', { name: video.name })}
       onPress={() => onPress(video.id)}
-      className={`px-5 ${className}`}
+      className={cn('px-5', className)}
       {...props}
     />
   );

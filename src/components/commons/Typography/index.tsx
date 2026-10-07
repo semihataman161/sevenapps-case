@@ -1,7 +1,7 @@
 import { Text } from 'react-native';
 
 import { useUpperCase } from '@/i18n';
-import { truncate } from '@/lib';
+import { cn, truncate } from '@/lib';
 
 import { fontFamilyFor, scales, toneClasses } from './styles';
 import type { TypographyProps } from './types';
@@ -30,7 +30,7 @@ export function Typography({
 
   return (
     <Text
-      className={`${toneClasses[tone]} ${className}`}
+      className={cn(toneClasses[tone], className)}
       style={[
         {
           fontFamily,

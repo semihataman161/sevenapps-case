@@ -1,9 +1,9 @@
 import { FONTS } from '@/lib';
 
 export const ruleClasses = {
-  idle: 'border-rule dark:border-rule-dark',
-  focused: 'border-ink dark:border-ink-dark',
-  invalid: 'border-accent dark:border-accent-dark',
+  idle: 'border-rule',
+  focused: 'border-ink',
+  invalid: 'border-accent',
 };
 
 export const textStyle = {

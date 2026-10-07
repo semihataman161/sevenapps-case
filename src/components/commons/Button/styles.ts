@@ -10,7 +10,7 @@ export const BOXED_DISABLED = { container: 'opacity-40', content: '' };
 export const variants: Record<ButtonVariant, ButtonVariantStyle> = {
   primary: {
     boxed: true,
-    container: `rounded justify-between bg-ink dark:bg-ink-dark`,
+    container: `rounded justify-between bg-ink`,
     disabled: BOXED_DISABLED,
     text: 'inverse',
     icon: 'inverse',
@@ -22,7 +22,7 @@ export const variants: Record<ButtonVariant, ButtonVariantStyle> = {
   },
   secondary: {
     boxed: true,
-    container: `rounded justify-between border border-ink dark:border-ink-dark`,
+    container: `rounded justify-between border border-ink`,
     disabled: BOXED_DISABLED,
     text: 'default',
     icon: 'default',
@@ -34,7 +34,7 @@ export const variants: Record<ButtonVariant, ButtonVariantStyle> = {
   },
   danger: {
     boxed: true,
-    container: `rounded justify-between border border-accent dark:border-accent-dark`,
+    container: `rounded justify-between border border-accent`,
     disabled: BOXED_DISABLED,
     text: 'danger',
     icon: 'danger',

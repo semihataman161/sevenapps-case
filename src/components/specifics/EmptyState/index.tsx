@@ -1,6 +1,8 @@
 import { View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
+import { cn } from '@/lib';
+
 import { Typography } from '@/components/commons';
 
 import { alignClasses } from './styles';
@@ -22,19 +24,19 @@ export function EmptyState({
   return (
     <Animated.View
       entering={FadeIn.duration(400)}
-      className={`${classes.container} ${className}`}
+      className={cn(classes.container, className)}
       {...props}
     >
       {eyebrow ? (
-        <Typography variant="overline" tone="accent" className={`mb-4 ${classes.text}`}>
+        <Typography variant="overline" tone="accent" className={cn('mb-4', classes.text)}>
           {eyebrow}
         </Typography>
       ) : null}
-      <Typography variant="headline" className={`max-w-[320px] ${classes.text}`}>
+      <Typography variant="headline" className={cn('max-w-[320px]', classes.text)}>
         {title}
       </Typography>
       {message ? (
-        <Typography tone="secondary" className={`mt-3 max-w-[300px] ${classes.text}`}>
+        <Typography tone="secondary" className={cn('mt-3 max-w-[300px]', classes.text)}>
           {message}
         </Typography>
       ) : null}

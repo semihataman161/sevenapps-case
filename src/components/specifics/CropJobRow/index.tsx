@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib';
+
 import { Button, Icon, MediaItem, Row, Spinner } from '@/components/commons';
 
 import { TITLE_MAX_CHARS } from '../VideoEntry/constants';
@@ -37,7 +39,7 @@ export function CropJobRow({ job, onRetry, onDismiss, className = '', ...props }
       }
       accessible={false}
       disabled
-      className={`px-5 ${className}`}
+      className={cn('px-5', className)}
       {...props}
     />
   );

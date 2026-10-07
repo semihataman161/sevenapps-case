@@ -151,7 +151,7 @@ export function TrimScrubber({
           <Animated.View
             pointerEvents="none"
             style={[{ width: windowWidth, height: SCRUBBER_TRACK_HEIGHT }, windowStyle]}
-            className="absolute left-0 top-0 flex-row justify-between rounded-sm border-y-2 border-accent dark:border-accent-dark"
+            className="absolute left-0 top-0 flex-row justify-between rounded-sm border-y-2 border-accent"
           >
             <Grip />
             <Grip />

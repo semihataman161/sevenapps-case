@@ -1,5 +1,7 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { cn } from '@/lib';
+
 import { Header } from '@/components/commons';
 
 import { HeaderBackButton } from '../HeaderBackButton';
@@ -14,7 +16,7 @@ export function ScreenHeader({
 }: ScreenHeaderProps) {
   return (
     <SafeAreaView edges={['top']}>
-      <Header left={left} className={`px-5 ${className}`} {...props} />
+      <Header left={left} className={cn('px-5', className)} {...props} />
     </SafeAreaView>
   );
 }

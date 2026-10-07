@@ -1,12 +1,12 @@
 export type ThemeColors = {
-  background: string;
+  paper: string;
   surface: string;
-  text: string;
+  ink: string;
   secondary: string;
   muted: string;
-  border: string;
+  rule: string;
   accent: string;
-  inverse: string;
+  veil: string;
 };
 
 export type ThemePalette = {

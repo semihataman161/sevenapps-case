@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 
-import { useThemeColors } from '@/lib';
+import { cn, useThemeColors } from '@/lib';
 
 import { ruleClasses, textStyle } from './styles';
 import type { InputProps } from './types';
@@ -25,7 +25,12 @@ export function Input({
 
   return (
     <View
-      className={`flex-row gap-2 border-b ${multiline ? 'items-start' : 'items-center'} ${ruleClass} ${className}`}
+      className={cn(
+        'flex-row gap-2 border-b',
+        multiline ? 'items-start' : 'items-center',
+        ruleClass,
+        className,
+      )}
     >
       {leading}
       <TextInput
@@ -33,7 +38,7 @@ export function Input({
         textAlignVertical={multiline ? 'top' : 'center'}
         placeholderTextColor={colors.muted}
         selectionColor={colors.accent}
-        cursorColor={colors.text}
+        cursorColor={colors.ink}
         onFocus={(event) => {
           setFocused(true);
           onFocus?.(event);
@@ -42,7 +47,7 @@ export function Input({
           setFocused(false);
           onBlur?.(event);
         }}
-        className={`flex-1 py-2.5 text-ink dark:text-ink-dark ${multiline ? 'min-h-24' : ''}`}
+        className={cn('flex-1 py-2.5 text-ink', multiline && 'min-h-24')}
         style={[textStyle, style]}
         {...props}
       />

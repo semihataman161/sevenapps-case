@@ -51,12 +51,12 @@ export const sansFamilies: Record<TypographyWeight, string> = {
 };
 
 export const toneClasses: Record<TypographyTone, string> = {
-  default: 'text-ink dark:text-ink-dark',
-  secondary: 'text-secondary dark:text-secondary-dark',
-  muted: 'text-muted dark:text-muted-dark',
-  accent: 'text-accent dark:text-accent-dark',
-  danger: 'text-accent dark:text-accent-dark',
-  inverse: 'text-paper dark:text-paper-dark',
+  default: 'text-ink',
+  secondary: 'text-secondary',
+  muted: 'text-muted',
+  accent: 'text-accent',
+  danger: 'text-accent',
+  inverse: 'text-paper',
 };
 
 export function fontFamilyFor(scale: TypographyScale, weight?: TypographyWeight): string {

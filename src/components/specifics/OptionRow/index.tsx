@@ -1,5 +1,7 @@
 import { View } from 'react-native';
 
+import { cn } from '@/lib';
+
 import { Row, Touchable, Typography } from '@/components/commons';
 
 import type { OptionRowProps } from './types';
@@ -12,7 +14,7 @@ export function OptionRow({ label, hint, selected, className = '', ...props }: O
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       accessibilityHint={hint}
-      className={`-mx-5 px-5 ${selected ? 'bg-ink dark:bg-ink-dark' : ''} ${className}`}
+      className={cn('-mx-5 px-5', selected && 'bg-ink', className)}
       {...props}
     >
       <Row className="min-h-14 py-4">
@@ -27,7 +29,7 @@ export function OptionRow({ label, hint, selected, className = '', ...props }: O
             <Typography
               variant="caption"
               tone={selected ? 'inverse' : 'secondary'}
-              className={`mt-1 ${selected ? 'opacity-70' : ''}`}
+              className={cn('mt-1', selected && 'opacity-70')}
             >
               {hint}
             </Typography>

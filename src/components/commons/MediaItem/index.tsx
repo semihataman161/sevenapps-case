@@ -26,7 +26,7 @@ export function MediaItem({
     <Touchable accessibilityRole="button" {...props}>
       <Row align="start" gap={16} className="py-5">
         <View
-          className="overflow-hidden rounded bg-surface dark:bg-surface-dark"
+          className="overflow-hidden rounded bg-surface"
           style={{ width: THUMBNAIL_WIDTH, aspectRatio: THUMBNAIL_RATIO }}
         >
           {leading ??

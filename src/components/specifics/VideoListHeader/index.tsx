@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib';
+
 import { Button, PageHeader, Row, SearchField, Typography } from '@/components/commons';
 
 import type { VideoListHeaderProps } from './types';
@@ -61,7 +63,7 @@ export function VideoListHeader({
           />
         ) : null
       }
-      className={`px-5 ${className}`}
+      className={cn('px-5', className)}
       {...props}
     />
   );

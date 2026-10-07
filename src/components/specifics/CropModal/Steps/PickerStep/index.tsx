@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { CLIP_DURATION, MIN_SOURCE_DURATION, useBottomGap } from '@/lib';
+import { CLIP_DURATION, cn, MIN_SOURCE_DURATION, useBottomGap } from '@/lib';
 import { videoService } from '@/services';
 import { useCropDraftStore } from '@/stores';
 
@@ -43,7 +43,7 @@ export function PickerStep({ onPicked, className = '', style, ...props }: Picker
 
   return (
     <View
-      className={`flex-1 ${className}`}
+      className={cn('flex-1', className)}
       style={[{ paddingBottom: bottomGap }, style]}
       {...props}
     >

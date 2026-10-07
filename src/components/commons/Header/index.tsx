@@ -1,5 +1,7 @@
 import { View } from 'react-native';
 
+import { cn } from '@/lib';
+
 import { Row } from '../Row';
 import { Typography } from '../Typography';
 import type { HeaderProps } from './types';
@@ -16,7 +18,7 @@ export function Header({
   ...props
 }: HeaderProps) {
   return (
-    <Row gap={8} className={`h-12 ${className}`} {...props}>
+    <Row gap={8} className={cn('h-12', className)} {...props}>
       <View className="flex-1 items-start">{left}</View>
       <Typography
         variant={titleVariant}

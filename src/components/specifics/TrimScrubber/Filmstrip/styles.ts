@@ -1,4 +1,6 @@
-export const FILM_BASE = '#171717';
+import { palette } from '@/lib';
+
+export const FILM_BASE = palette.light.ink;
 
 export const SPROCKET_BAND = 8;
 

@@ -1,3 +1,5 @@
+import { cn } from '@/lib';
+
 import { Divider, Icon, Row, Spinner, Touchable, Typography } from '@/components/commons';
 
 import type { ActionRowProps } from './types';
@@ -21,7 +23,7 @@ export function ActionRow({
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}
-      className={`${isDisabled ? 'opacity-40' : ''} ${className}`}
+      className={cn(isDisabled && 'opacity-40', className)}
       {...props}
     >
       <Row justify="between" className="h-16">

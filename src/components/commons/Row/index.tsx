@@ -1,5 +1,7 @@
 import { View } from 'react-native';
 
+import { cn } from '@/lib';
+
 import { alignClasses, justifyClasses } from './styles';
 import type { RowProps } from './types';
 
@@ -15,7 +17,7 @@ export function Row({
 }: RowProps) {
   return (
     <View
-      className={`flex-row ${alignClasses[align]} ${justifyClasses[justify]} ${className}`}
+      className={cn('flex-row', alignClasses[align], justifyClasses[justify], className)}
       style={[{ gap }, style]}
       {...props}
     />

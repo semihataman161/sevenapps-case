@@ -97,7 +97,7 @@ src/
 ├── services/                 # Self-contained service classes (VideoService, SqliteDatabase, FileStorage, KeyValueStorage) + instances
 ├── stores/                   # Zustand: video list, crop draft, persisted settings
 ├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
-├── lib/                      # constants, time math, text truncation, debounce, Yup schema, theme, layout, player helpers, query client
+├── lib/                      # constants, time math, text truncation, debounce, cn (class merging), Yup schema, theme palette, layout, query client
 ├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
 └── types/                    # Shared icon types
 ```
@@ -143,8 +143,18 @@ An editorial, film-diary look rather than a card-based app UI:
 
 - **Palette** (warm, near-monochrome; accent used sparingly): background `#F5F3EE`, text
   `#171717`, secondary `#77736C`, muted `#9A968F`, divider `#D8D4CC`, subtle surface
-  `#ECE9E2`, accent `#A33A32`. A matching dark palette is defined in `tailwind.config.js` and
-  `lib/theme`.
+  `#ECE9E2`, accent `#A33A32`, with a matching dark palette.
+- **One palette, CSS variables.** Colours are defined once in `src/lib/theme/palette.ts`
+  (light and dark). `tailwind.config.ts` imports it and turns it into CSS variables
+  (`:root` for light, `@media (prefers-color-scheme: dark)` for dark) and colour tokens such
+  as `bg-paper` or `text-ink` (`rgb(var(--color-paper) / <alpha-value>)`, so opacity
+  modifiers like `border-rule/50` still work). A single class therefore switches with the
+  theme; there are no `dark:` variants in the code. Places that need a plain colour value
+  instead of a class (icons, spinners, the text cursor, sheets, the navigation theme) read
+  the same palette through `useThemeColors()`.
+- **Class merging.** Components combine their own classes with the caller's through
+  `cn()` (`tailwind-merge`), never by string concatenation. When two classes conflict, the
+  later one wins, so a caller's `className="px-0"` really overrides a component's `px-5`.
 - **Type**: DM Serif Display for headings and entry titles, Inter for everything functional
   (dates, durations, buttons, forms, navigation), tracked uppercase overlines for metadata,
   tabular numerals for times and counts. Fonts load before the splash screen hides.
@@ -345,7 +355,7 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
 - **Reusable components**: see *Components: commons and specifics* above. `MetadataForm` is
   shared by the crop flow and the edit screen.
 - **Theme**: the choice is applied with NativeWind's `colorScheme.set()`, which overrides
-  React Native's app-wide `Appearance`. So Tailwind `dark:` classes, `useColorScheme()`-based
+  React Native's app-wide `Appearance`. So the palette's CSS variables, `useThemeColors()`
   colours (headers, icons) and native UI (alerts, keyboard, video controls) all switch
   together. "System" follows the device.
 - **Settings persistence**: a Zustand `persist` store backed by `KeyValueStorage`, which wraps
@@ -376,7 +386,7 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
 npm test
 ```
 
-Unit tests cover segment math, formatting and text truncation, the Yup schema, all three
+Unit tests cover segment math, formatting and text truncation, class merging (`cn`), the Yup schema, all three
 Zustand stores (including settings persistence, paging and search), the services (`VideoService` crop
 pipeline with rollback, paging, orphaned-file clean-up, details update, delete, filmstrip
 timing, player helpers and error codes; `SqliteVideoRepository` SQL, parameters, search

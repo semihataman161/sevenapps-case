@@ -2,7 +2,7 @@ import { Modal, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useThemeColors } from '@/lib';
+import { cn, useThemeColors } from '@/lib';
 
 import type { SheetProps } from '../types';
 
@@ -28,7 +28,7 @@ export function PageSheet({
       {...props}
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <View className={`flex-1 ${className}`} style={{ backgroundColor: colors.background }}>
+        <View className={cn('flex-1', className)} style={{ backgroundColor: colors.paper }}>
           <SafeAreaView edges={['bottom']} style={{ flex: 1 }}>
             {header}
             {children}

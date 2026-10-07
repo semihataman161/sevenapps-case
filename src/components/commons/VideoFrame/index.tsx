@@ -2,6 +2,8 @@ import { VideoView } from 'expo-video';
 import { useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 
+import { cn } from '@/lib';
+
 import { DEFAULT_ASPECT_RATIO, DEFAULT_MAX_HEIGHT_RATIO } from './constants';
 import type { VideoFrameProps } from './types';
 
@@ -26,7 +28,7 @@ export function VideoFrame({
 
   return (
     <View
-      className={`w-full overflow-hidden rounded-md bg-black ${className}`}
+      className={cn('w-full overflow-hidden rounded-md bg-black', className)}
       style={[{ aspectRatio: ratio }, style]}
       onLayout={(event) => {
         setWidth(event.nativeEvent.layout.width);

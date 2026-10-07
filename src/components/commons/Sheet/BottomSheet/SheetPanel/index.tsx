@@ -86,7 +86,7 @@ export function SheetPanel({
           style={[
             {
               flex: 1,
-              backgroundColor: colors.background,
+              backgroundColor: colors.paper,
               borderTopLeftRadius: CORNER_RADIUS,
               borderTopRightRadius: CORNER_RADIUS,
               overflow: 'hidden',
@@ -97,10 +97,7 @@ export function SheetPanel({
           <GestureDetector gesture={pan}>
             <View>
               <View className="items-center pb-1 pt-2">
-                <View
-                  className="h-[3px] w-9 rounded-sm"
-                  style={{ backgroundColor: colors.border }}
-                />
+                <View className="h-[3px] w-9 rounded-sm" style={{ backgroundColor: colors.rule }} />
               </View>
               {header}
             </View>

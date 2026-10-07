@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { cn } from '@/lib';
+
 import { Button } from '@/components/commons';
 
 import { EmptyState } from '../EmptyState';
@@ -12,7 +14,7 @@ export function ErrorScreen({ onRetry, className = '', ...props }: ErrorScreenPr
   const { t } = useTranslation();
 
   return (
-    <View className={`flex-1 justify-center bg-paper dark:bg-paper-dark ${className}`} {...props}>
+    <View className={cn('flex-1 justify-center bg-paper', className)} {...props}>
       <EmptyState
         className="px-5"
         align="center"

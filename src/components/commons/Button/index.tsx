@@ -1,3 +1,5 @@
+import { cn } from '@/lib';
+
 import { Icon } from '../Icon';
 import { Row } from '../Row';
 import { Spinner } from '../Spinner';
@@ -37,9 +39,13 @@ export function Button({
       disabled={isDisabled}
       hitSlop={style.hitSlop}
       pressedOpacity={style.pressedOpacity}
-      className={`flex-row items-center ${style.container} ${style.boxed ? sizeClasses[size] : ''} ${
-        isDisabled ? style.disabled.container : ''
-      } ${className}`}
+      className={cn(
+        'flex-row items-center',
+        style.container,
+        style.boxed && sizeClasses[size],
+        isDisabled && style.disabled.container,
+        className,
+      )}
       {...props}
     >
       {loading ? (
@@ -48,7 +54,10 @@ export function Button({
         <Row
           gap={style.gap}
           justify="between"
-          className={`${style.boxed && size === 'regular' ? 'flex-1' : ''} ${isDisabled ? style.disabled.content : ''}`}
+          className={cn(
+            style.boxed && size === 'regular' && 'flex-1',
+            isDisabled && style.disabled.content,
+          )}
         >
           {position === 'start' ? iconElement : null}
           {title ? (
