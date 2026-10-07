@@ -211,6 +211,9 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
   (~2.3 s for 8 frames on an emulator with an 8 s GOP). The trim step shows a "Preparing your
   video…" loader until the player is ready and the filmstrip is done, then reveals the
   editor in one go, and only then starts the preview.
+- **Going back from Details to Trim** doesn't reload anything: the trim step stays mounted
+  (hidden, preview paused) while the details step is shown, so the player and filmstrip are
+  reused.
   The selection window moves on the UI thread (Gesture Handler + Reanimated) and only hops to
   JS every few pan events to seek the preview. The playhead follows `timeUpdate` events
   without re-rendering React.

@@ -28,7 +28,14 @@ const MAX_LOOKAHEAD = 0.15;
 const SEEK_SETTLE_MS = 150;
 const FRAME_COUNT = 8;
 
-export function TrimStep({ source, onNext, className = '', style, ...props }: TrimStepProps) {
+export function TrimStep({
+  source,
+  onNext,
+  active = true,
+  className = '',
+  style,
+  ...props
+}: TrimStepProps) {
   const { t } = useTranslation();
   const colors = useThemeColors();
   const bottomGap = useBottomGap();
@@ -86,24 +93,24 @@ export function TrimStep({ source, onNext, className = '', style, ...props }: Tr
   }, [player]);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || !active) return;
     lastCheck.current.at = 0;
     let frame = requestAnimationFrame(function tick() {
       keepInSegment();
       frame = requestAnimationFrame(tick);
     });
     return () => cancelAnimationFrame(frame);
-  }, [isPlaying]);
+  }, [isPlaying, active]);
 
   const startPreview = useEffectEvent(() => {
     seekTo(player, bounds.start);
     player.play();
   });
   useEffect(() => {
-    if (!ready || isPreparing) return;
+    if (!ready || isPreparing || !active) return;
     startPreview();
     return () => pauseSafely(player);
-  }, [player, ready, isPreparing]);
+  }, [player, ready, isPreparing, active]);
 
   const handleScrub = useCallback(
     (seconds: number) => {
