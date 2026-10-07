@@ -1,11 +1,9 @@
-import { useEvent } from 'expo';
-import { useVideoPlayer } from 'expo-video';
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useCallback } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
-import { useFilmstrip } from '@/hooks';
+import { useFilmstrip, useMediaPlayer, usePlayerStatus, useSegmentPlayback } from '@/hooks';
 import {
   CLIP_DURATION,
   clipLengthFor,
@@ -16,18 +14,11 @@ import {
   useBottomGap,
   wholeSeconds,
 } from '@/lib';
-import { videoService } from '@/services';
 import { useCropDraftStore, usePick } from '@/stores';
 
 import { Button, Icon, Spinner, Touchable, Typography, VideoFrame } from '@/components/commons';
 import { TrimScrubber } from '../../../TrimScrubber';
-import {
-  FRAME_COUNT,
-  LOOP_LEAD,
-  MAX_LOOKAHEAD,
-  SEEK_SETTLE_MS,
-  TIME_UPDATE_INTERVAL,
-} from './constants';
+import { FRAME_COUNT, TIME_UPDATE_INTERVAL } from './constants';
 import type { TrimStepProps } from './types';
 
 export type * from './types';
@@ -48,94 +39,29 @@ export function TrimStep({
     'setDuration',
   ]);
 
-  const player = useVideoPlayer(source.uri, (p) =>
-    videoService.configurePlayer(p, { loop: false, timeUpdateEventInterval: TIME_UPDATE_INTERVAL }),
-  );
-  const { status } = useEvent(player, 'statusChange', { status: player.status });
-  const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
+  const media = useMediaPlayer(source.uri, {
+    loop: false,
+    timeUpdateInterval: TIME_UPDATE_INTERVAL,
+  });
+  const { status, isPlaying, isLoaded } = usePlayerStatus(media, setDuration);
   const bounds = segmentBounds(start, source.duration);
   const windowLength = clipLengthFor(source.duration);
-
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => {
-    const markLoaded = () => {
-      if (player.duration > 0) setDuration(player.duration);
-      setLoaded(true);
-    };
-    const subscriptions = [
-      player.addListener('sourceLoad', markLoaded),
-      player.addListener('statusChange', ({ status: next }) => {
-        if (next === 'readyToPlay') markLoaded();
-      }),
-    ];
-    return () => subscriptions.forEach((subscription) => subscription.remove());
-  }, [player, setDuration]);
-  const ready = loaded && source.duration > 0;
-  const filmstrip = useFilmstrip(player, source.duration, FRAME_COUNT, ready);
+  const ready = isLoaded && source.duration > 0;
+  const filmstrip = useFilmstrip(media, source.duration, FRAME_COUNT, ready);
   const isPreparing = status !== 'error' && (!ready || !filmstrip.settled);
-
-  const lastCheck = useRef({ at: 0, loopedAt: 0 });
-  const keepInSegment = useEffectEvent(() => {
-    const now = performance.now();
-    const check = lastCheck.current;
-    const sinceLastCheck = check.at ? (now - check.at) / 1000 : 1 / 60;
-    check.at = now;
-    if (now - check.loopedAt < SEEK_SETTLE_MS) return;
-
-    const position = player.currentTime;
-    const nextPosition = position + Math.min(sinceLastCheck, MAX_LOOKAHEAD) * player.playbackRate;
-    if (nextPosition >= bounds.end - LOOP_LEAD || position < bounds.start - 0.25) {
-      check.loopedAt = now;
-      videoService.seek(player, bounds.start);
-    }
+  const { scrubTo } = useSegmentPlayback(media, {
+    segment: bounds,
+    isPlaying,
+    enabled: active && ready && !isPreparing,
   });
-  const onPlayToEnd = useEffectEvent(() => {
-    videoService.seek(player, bounds.start);
-    player.play();
-  });
-  useEffect(() => {
-    const subscription = player.addListener('playToEnd', () => onPlayToEnd());
-    return () => subscription.remove();
-  }, [player]);
-
-  useEffect(() => {
-    if (!isPlaying || !active) return;
-    lastCheck.current.at = 0;
-    let frame = requestAnimationFrame(function tick() {
-      keepInSegment();
-      frame = requestAnimationFrame(tick);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [isPlaying, active]);
-
-  const startPreview = useEffectEvent(() => {
-    videoService.seek(player, bounds.start);
-    player.play();
-  });
-  useEffect(() => {
-    if (!ready || isPreparing || !active) return;
-    startPreview();
-    return () => videoService.pause(player);
-  }, [player, ready, isPreparing, active]);
-
-  const handleScrub = useCallback(
-    (seconds: number) => {
-      player.pause();
-      videoService.seek(player, seconds);
-    },
-    [player],
-  );
 
   const handleChange = useCallback(
     (seconds: number) => {
       setStart(seconds);
-      videoService.seek(player, seconds);
-      player.play();
+      media.playFrom(seconds);
     },
-    [player, setStart],
+    [setStart, media],
   );
-
-  const togglePlayback = () => (player.playing ? player.pause() : player.play());
 
   if (isPreparing) {
     return (
@@ -162,11 +88,11 @@ export function TrimStep({
       <ScrollView contentContainerClassName="grow justify-center px-5 py-4" bounces={false}>
         <Touchable
           pressedOpacity={1}
-          onPress={togglePlayback}
+          onPress={() => media.toggle()}
           accessibilityLabel={isPlaying ? t('crop.pause') : t('crop.play')}
         >
           <VideoFrame
-            player={player}
+            player={media.native}
             nativeControls={false}
             aspectRatio={source.width && source.height ? source.width / source.height : undefined}
           />
@@ -192,7 +118,7 @@ export function TrimStep({
 
         <View className="mt-8">
           <TrimScrubber
-            player={player}
+            media={media}
             duration={source.duration}
             windowLength={windowLength}
             start={start}
@@ -210,7 +136,7 @@ export function TrimStep({
             formatRange={(from, to) =>
               t('crop.segmentRange', { start: formatTime(from), end: formatTime(to) })
             }
-            onScrub={handleScrub}
+            onScrub={scrubTo}
             onChange={handleChange}
           />
         </View>

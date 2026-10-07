@@ -20,7 +20,7 @@ import type { TrimScrubberProps } from './types';
 export type * from './types';
 
 export function TrimScrubber({
-  player,
+  media,
   duration,
   windowLength,
   start,
@@ -50,11 +50,10 @@ export function TrimScrubber({
 
   useEffect(() => {
     if (trackWidth === 0 || duration <= 0) return;
-    const subscription = player.addListener('timeUpdate', ({ currentTime }) => {
-      playhead.set(withTiming((currentTime / duration) * trackWidth, { duration: 100 }));
+    return media.onTimeUpdate((seconds) => {
+      playhead.set(withTiming((seconds / duration) * trackWidth, { duration: 100 }));
     });
-    return () => subscription.remove();
-  }, [player, duration, trackWidth, playhead]);
+  }, [media, duration, trackWidth, playhead]);
 
   const gesture = useMemo(() => {
     const toSeconds = (position: number) => {

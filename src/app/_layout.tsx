@@ -19,8 +19,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ErrorScreen } from '@/components/specifics';
 import { queryClient, useThemeColors } from '@/lib';
+import { keyValueStorage, useVideoStore, videoService } from '@/services';
 import { initPreferences, registerCssInterop, sweepOrphanedFilesIfDue } from '@/setup';
-import { usePick, useVideoStore } from '@/stores';
+import { usePick } from '@/stores';
 
 registerCssInterop();
 initPreferences();
@@ -52,7 +53,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (status !== 'ready') return;
-    sweepOrphanedFilesIfDue().catch((error) =>
+    sweepOrphanedFilesIfDue({ videos: videoService, storage: keyValueStorage }).catch((error) =>
       console.warn('Could not clean up orphaned files', error),
     );
   }, [status]);

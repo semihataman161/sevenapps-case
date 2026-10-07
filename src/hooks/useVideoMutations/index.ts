@@ -7,8 +7,13 @@ import {
 } from '@tanstack/react-query';
 
 import { segmentBounds } from '@/lib';
-import { videoService, type VideoDetails, type VideoRecord } from '@/services';
-import { useVideoStore } from '@/stores';
+import {
+  useVideoStore,
+  videoErrorCode,
+  videoService,
+  type VideoDetails,
+  type VideoRecord,
+} from '@/services';
 
 import { FALLBACK_ERROR_KEYS, KNOWN_ERROR_KEYS, videoKeys } from './constants';
 import type { CropJob, CropVideoInput, VideoErrorKey, VideoOperation } from './types';
@@ -16,7 +21,7 @@ import type { CropJob, CropVideoInput, VideoErrorKey, VideoOperation } from './t
 export type * from './types';
 
 export function videoErrorKey(error: unknown, operation: VideoOperation): VideoErrorKey {
-  const code = videoService.errorCode(error);
+  const code = videoErrorCode(error);
   return code === 'unknown' ? FALLBACK_ERROR_KEYS[operation] : KNOWN_ERROR_KEYS[code];
 }
 

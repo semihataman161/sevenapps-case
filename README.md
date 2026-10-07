@@ -93,9 +93,9 @@ src/
 ├── components/
 │   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
 │   └── specifics/            # App components composed from commons: VideoEntry, VideoListHeader, CropModal, …
-├── hooks/                    # TanStack mutations, filmstrip frames
-├── services/                 # Self-contained service classes (VideoService, SqliteDatabase, FileStorage, KeyValueStorage) + instances
-├── stores/                   # Zustand: video list, crop draft, persisted settings
+├── hooks/                    # TanStack mutations/queries, media player, player status, segment playback, filmstrip
+├── services/                 # Self-contained service classes (VideoService, MediaPicker, MediaPlayer, SqliteDatabase, FileStorage, KeyValueStorage) + instances
+├── stores/                   # Zustand store factories (video list, persisted settings), crop draft, usePick
 ├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
 ├── lib/                      # constants, time math, text truncation, debounce, cn (class merging), Yup schema, theme palette, layout, query client
 ├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
@@ -241,18 +241,37 @@ into another project and it works there.
 
 | Service | Responsibility | Dependencies (injected) |
 | --- | --- | --- |
-| `VideoService` | Everything video: pick from the library, crop (trim → store file → poster → persist, with rollback), single record (`get`), paged listing (`listPage`, `count`), update details, delete, orphaned-file clean-up, file URIs, filmstrip frames, player helpers (`configurePlayer`, `seek`, `pause`), error codes | `repository`, `videos` / `thumbnails` file stores, `trimmer`, `thumbnailer`, `picker`, optional `createId` / `now` |
+| `VideoService` | The clip library: crop (trim → store file → poster → persist, with rollback), single record (`get`), paged listing (`listPage`, `count`), update details, delete, orphaned-file clean-up, file URIs. `videoErrorCode()` maps any error to a service error code | `repository`, `videos` / `thumbnails` file stores, `trimmer`, `thumbnailer`, optional `createId` / `now` |
+| `MediaPicker` | Picks one video from the photo library and returns its URI, duration (s), size and file name | library launcher (defaults to `expo-image-picker`) |
+| `MediaPlayer` | Wraps one `expo-video` player: settings (`configure`), control (`play`, `pause` that never throws, `toggle`, `seek`, `playFrom`), state (`status`, `isPlaying`, `currentTime`, `duration`, `playbackRate`), events as plain values with an unsubscribe function (`onStatusChange`, `onPlayingChange`, `onTimeUpdate`, `onPlayToEnd`, `onLoad`), filmstrip frames (`createFilmstrip`) | the native player; `native` is passed to the video view for rendering |
 | `VideoService/SqliteVideoRepository` | SQL for the `videos` table; one implementation of `VideoRepositoryContract` | a connection (`SqliteDatabase`) |
 | `SqliteDatabase` | Opens SQLite once and runs versioned migrations | `name`, `migrations`, optional `open` |
 | `FileStorage` | One folder in the documents directory: list files, resolve URIs, move files in, delete | folder name |
 | `KeyValueStorage` | Synchronous key-value store (used by the persisted settings store) | backend (defaults to `expo-sqlite/kv-store`) |
 
 The native modules (`expo-trim-video`, `expo-video-thumbnails`, `expo-image-manipulator`,
-`expo-image-picker`) are wrapped in small adapters (`VideoService/adapters`). The poster
-adapter grabs the first frame and resizes it to a 360 px wide JPEG before it's stored. `services/instances` is the only place
-that wires concrete services together and exports the instances the app uses
-(`videoService`, `keyValueStorage`); the rest of the app never calls the native video
-modules directly. Tests construct services with fakes, so no module mocking is needed.
+`expo-image-picker`) are wrapped in small adapters (`VideoService/adapters`) or behind an
+injectable default (`MediaPicker`, `KeyValueStorage`). The poster adapter grabs the first frame
+and resizes it to a 360 px wide JPEG before it's stored. Every player operation goes through
+`MediaPlayer`: `useMediaPlayer(uri, options)` creates the `expo-video` player, configures it and
+returns it wrapped, and hooks and components only talk to that wrapper. Only the video view
+(`VideoFrame`) receives the native player, to render it. A `MediaPlayer` belongs to one player,
+so it is created per screen by the hook rather than in `services/instances`.
+
+**Wiring (dependency inversion).** `services/instances` is the composition root and the only place
+that creates concrete objects: the services (`videoService`, `mediaPicker`, `keyValueStorage`)
+and the stores built from them (`useVideoStore = createVideoStore(videoService)`,
+`useSettingsStore = createSettingsStore(keyValueStorage)`). Screens, hooks and components
+import what they need from `@/services`. The reusable layers don't:
+
+- **Services** receive their dependencies through their constructors.
+- **Stores** are factories that receive what they need: `createVideoStore` takes anything
+  with `listPage`, `count` and `get`; `createSettingsStore` takes any `StateStorage`.
+- **Startup jobs** receive their dependencies as arguments
+  (`sweepOrphanedFilesIfDue({ videos, storage })`).
+
+So services and store factories can be copied into another project, and their tests pass
+fakes directly instead of mocking modules.
 
 ### Data flow
 
@@ -286,8 +305,10 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
   ephemeral crop-modal draft (`cropDraftStore`) shared by the three steps and cleared when
   the modal closes. List rows subscribe to their own record, so editing one clip re-renders
   only that row.
-- **Store layout**: each store lives in `src/stores/<name>Store/` and is exposed as a
-  `use<Name>Store` hook. Its types split data from behaviour (`<Name>State` for the data,
+- **Store layout**: each store lives in `src/stores/<name>Store/`. Stores with dependencies
+  are factories (`create<Name>Store(deps)`) instantiated in `services/instances`; the dependency-free
+  crop draft is a plain `useCropDraftStore` hook. Selectors that take arguments are exported
+  next to the store (`useVideoStore(selectVideo(id))`). Its types split data from behaviour (`<Name>State` for the data,
   `<Name>Actions` for the functions, `<Name>Store` for both), and its initial state is a
   single constant in `constants.ts` (`INITIAL_<NAME>_STATE`) reused by the store, its reset
   action and the tests. Components read several fields of one store in a single call with
@@ -326,6 +347,13 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
   `ErrorBoundary`, so a render error shows `ErrorScreen` with **Try again** instead of a red
   screen or a crash; unknown links land on `+not-found`.
 
+- **Trim step playback** is split out of the `TrimStep` component into hooks built on
+  `MediaPlayer`: `useMediaPlayer` (creates the player), `usePlayerStatus` (status and playing
+  state through `useSyncExternalStore`, and when the source has loaded) and
+  `useSegmentPlayback` (keeps the preview looping inside the selected 5 s, restarts on
+  play-to-end, starts the preview once the editor is ready, and exposes `scrubTo`). Play/pause
+  and jumping to a new start call `media.toggle()` and `media.playFrom()`. The component only
+  lays out the UI.
 - **Scrubber** (`TrimScrubber`): the filmstrip comes from `player.generateThumbnailsAsync`.
   Thumbnails are frame-accurate, so on Android a long keyframe interval makes them slow
   (~2.3 s for 8 frames on an emulator with an 8 s GOP). The trim step shows a "Preparing your
@@ -388,12 +416,13 @@ npm test
 
 Unit tests cover segment math, formatting and text truncation, class merging (`cn`), the Yup schema, all three
 Zustand stores (including settings persistence, paging and search), the services (`VideoService` crop
-pipeline with rollback, paging, orphaned-file clean-up, details update, delete, filmstrip
-timing, player helpers and error codes; `SqliteVideoRepository` SQL, parameters, search
+pipeline with rollback, paging, orphaned-file clean-up, details update, delete and error
+codes; `MediaPicker` asset mapping; `MediaPlayer` settings, control, safe pause, filmstrip
+timing and event forwarding; `SqliteVideoRepository` SQL, parameters, search
 escaping and row mapping; `SqliteDatabase` migrations; `KeyValueStorage`), loading a single clip by id (repository, service and store), the daily
 file-sweep schedule, search in the video store (including ignoring outdated results),
 which background crops are listed as running or failed (a real `QueryClient`),
-using injected fakes instead of module mocks, device-language selection, and locale
+with stores, services and startup jobs built from injected fakes instead of module mocks, device-language selection, and locale
 completeness (same keys and placeholders in every language).
 
 ## Supported devices

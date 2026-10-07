@@ -1,16 +1,11 @@
 import type { VideoRecord } from '@/services';
 
-import { useVideoStore } from '@/stores';
+import { createVideoStore } from '@/stores/videoStore';
 import { INITIAL_VIDEO_STATE } from '@/stores/videoStore/constants';
 
-jest.mock('@/services', () => ({
-  videoService: { listPage: jest.fn(), count: jest.fn(), get: jest.fn() },
-  keyValueStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
-}));
+const videoService = { listPage: jest.fn(), count: jest.fn(), get: jest.fn() };
 
-const { videoService } = jest.requireMock('@/services') as {
-  videoService: { listPage: jest.Mock; count: jest.Mock; get: jest.Mock };
-};
+const useVideoStore = createVideoStore(videoService);
 
 const makeVideo = (id: string, createdAt: number): VideoRecord => ({
   id,
@@ -26,7 +21,7 @@ const makeVideo = (id: string, createdAt: number): VideoRecord => ({
   updatedAt: createdAt,
 });
 
-describe('useVideoStore', () => {
+describe('createVideoStore', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useVideoStore.setState(INITIAL_VIDEO_STATE);

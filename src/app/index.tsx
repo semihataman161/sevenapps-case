@@ -17,7 +17,8 @@ import {
 } from '@/components/specifics';
 import { useCropJobs } from '@/hooks';
 import { CLIP_DURATION } from '@/lib';
-import { usePick, useVideoStore } from '@/stores';
+import { useVideoStore } from '@/services';
+import { usePick } from '@/stores';
 
 function openVideo(id: string) {
   router.push({ pathname: '/videos/[id]', params: { id } });

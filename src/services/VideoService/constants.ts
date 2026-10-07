@@ -4,8 +4,6 @@ export const VIDEO_EXTENSION = 'mp4';
 
 export const THUMBNAIL_EXTENSION = 'jpg';
 
-export const DEFAULT_FRAME_WIDTH = 160;
-
 export const NATIVE_ERROR_CODES: Record<string, VideoErrorCode> = {
   INVALID_END: 'rangeOutOfBounds',
   INVALID_RANGE: 'rangeOutOfBounds',

@@ -5,7 +5,7 @@ import { videoKeys } from '@/hooks/useVideoMutations/constants';
 import type { CropVideoInput } from '@/hooks/useVideoMutations/types';
 
 jest.mock('expo-haptics', () => ({}));
-jest.mock('@/services', () => ({ videoService: { errorCode: () => 'unknown' } }));
+jest.mock('@/services', () => ({ videoErrorCode: () => 'unknown', useVideoStore: jest.fn() }));
 
 const input = (name: string): CropVideoInput => ({
   source: { uri: `file:///${name}.mov`, duration: 10, width: 1080, height: 1920, fileName: null },

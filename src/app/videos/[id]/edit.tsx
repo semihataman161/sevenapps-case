@@ -40,6 +40,7 @@ export default function EditVideoScreen() {
         <View className="flex-1 justify-center" style={{ paddingBottom: insets.top + 48 }}>
           <EmptyState
             className="px-5"
+            align="center"
             title={t('video.notFoundTitle')}
             message={t('video.notFoundMessage')}
             action={

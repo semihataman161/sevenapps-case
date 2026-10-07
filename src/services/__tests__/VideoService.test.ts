@@ -1,6 +1,4 @@
-import type { VideoPlayer } from 'expo-video';
-
-import { VideoService, VideoServiceError } from '@/services/VideoService';
+import { videoErrorCode, VideoService, VideoServiceError } from '@/services/VideoService';
 import type { VideoRecord, VideoServiceDependencies } from '@/services/VideoService';
 
 const source = {
@@ -35,7 +33,6 @@ function makeService(overrides: Partial<VideoServiceDependencies> = {}) {
     thumbnails: makeStorage('thumbnails'),
     trimmer: jest.fn(async () => ({ uri: 'file:///tmp/trimmed.mp4' })),
     thumbnailer: jest.fn(async () => ({ uri: 'file:///tmp/poster.jpg' })),
-    picker: jest.fn(async () => source),
   };
   const service = new VideoService({
     ...mocks,
@@ -227,43 +224,14 @@ describe('VideoService records', () => {
     expect(service.thumbnailUri('clip1.jpg')).toBe('file:///docs/thumbnails/clip1.jpg');
     expect(service.thumbnailUri(null)).toBeNull();
   });
-
-  it('delegates library picking to its picker', async () => {
-    const { service } = makeService();
-    await expect(service.pickFromLibrary()).resolves.toEqual(source);
-  });
 });
 
-describe('VideoService helpers', () => {
+describe('videoErrorCode', () => {
   it('maps native error codes to service error codes', () => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const { service } = makeService();
-    expect(service.errorCode({ code: 'INVALID_END' })).toBe('rangeOutOfBounds');
-    expect(service.errorCode({ code: 'FILE_NOT_FOUND' })).toBe('sourceUnreadable');
-    expect(service.errorCode(new VideoServiceError('notFound'))).toBe('notFound');
-    expect(service.errorCode(new Error('boom'))).toBe('unknown');
-  });
-
-  it('asks the player for evenly spaced filmstrip frames', async () => {
-    const { service } = makeService();
-    const generateThumbnailsAsync = jest.fn(async () => []);
-    const player = { generateThumbnailsAsync } as unknown as VideoPlayer;
-
-    await service.createFilmstrip(player, { duration: 8, count: 4, maxWidth: 100 });
-    expect(generateThumbnailsAsync).toHaveBeenCalledWith([1, 3, 5, 7], { maxWidth: 100 });
-  });
-
-  it('seeks and pauses players safely', () => {
-    const { service } = makeService();
-    const player = {
-      currentTime: 0,
-      pause: jest.fn(() => {
-        throw new Error('released');
-      }),
-    } as unknown as VideoPlayer;
-
-    service.seek(player, 4);
-    expect(player.currentTime).toBe(4);
-    expect(() => service.pause(player)).not.toThrow();
+    expect(videoErrorCode({ code: 'INVALID_END' })).toBe('rangeOutOfBounds');
+    expect(videoErrorCode({ code: 'FILE_NOT_FOUND' })).toBe('sourceUnreadable');
+    expect(videoErrorCode(new VideoServiceError('notFound'))).toBe('notFound');
+    expect(videoErrorCode(new Error('boom'))).toBe('unknown');
   });
 });

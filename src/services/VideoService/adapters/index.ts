@@ -1,10 +1,9 @@
 import { File } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
-import * as ImagePicker from 'expo-image-picker';
 import { trimVideo } from 'expo-trim-video';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 
-import type { LibraryPicker, Thumbnailer, Trimmer } from '../types';
+import type { Thumbnailer, Trimmer } from '../types';
 import { POSTER_QUALITY, POSTER_WIDTH } from './constants';
 
 function deleteQuietly(uri: string): void {
@@ -27,22 +26,4 @@ export const expoThumbnailer: Thumbnailer = async (uri) => {
   } finally {
     deleteQuietly(frame.uri);
   }
-};
-
-export const libraryPicker: LibraryPicker = async () => {
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['videos'],
-    allowsEditing: false,
-    quality: 1,
-  });
-  if (result.canceled) return null;
-
-  const asset = result.assets[0];
-  return {
-    uri: asset.uri,
-    duration: (asset.duration ?? 0) / 1000,
-    width: asset.width || null,
-    height: asset.height || null,
-    fileName: asset.fileName ?? null,
-  };
 };

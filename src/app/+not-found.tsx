@@ -16,6 +16,7 @@ export default function NotFoundScreen() {
       <View className="flex-1 justify-center" style={{ paddingBottom: insets.top + 48 }}>
         <EmptyState
           className="px-5"
+          align="center"
           eyebrow="404"
           title={t('notFound.title')}
           message={t('notFound.message')}

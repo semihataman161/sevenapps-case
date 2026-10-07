@@ -3,7 +3,8 @@ import { AppState } from 'react-native';
 
 import { getDeviceLanguage, i18n, type AppLanguage } from '@/i18n';
 
-import { useSettingsStore, type LanguagePreference, type ThemePreference } from '@/stores';
+import { useSettingsStore } from '@/services';
+import type { LanguagePreference, ThemePreference } from '@/stores';
 
 export function resolveLanguage(preference: LanguagePreference): AppLanguage {
   return preference === 'system' ? getDeviceLanguage() : preference;

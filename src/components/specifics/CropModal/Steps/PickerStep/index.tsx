@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { CLIP_DURATION, cn, MIN_SOURCE_DURATION, useBottomGap } from '@/lib';
-import { videoService } from '@/services';
+import { mediaPicker } from '@/services';
 import { useCropDraftStore } from '@/stores';
 
 import { Button, Typography } from '@/components/commons';
@@ -23,7 +23,7 @@ export function PickerStep({ onPicked, className = '', style, ...props }: Picker
     setError(null);
     setIsPicking(true);
     try {
-      const source = await videoService.pickFromLibrary();
+      const source = await mediaPicker.pickVideo();
       if (!source) return;
 
       if (source.duration > 0 && source.duration < MIN_SOURCE_DURATION) {

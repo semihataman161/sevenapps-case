@@ -1,14 +1,13 @@
-import type { VideoPlayer } from 'expo-video';
 import { useEffect, useState } from 'react';
 
-import { videoService } from '@/services';
+import type { MediaPlayer } from '@/services';
 
 import type { Filmstrip } from './types';
 
 export type * from './types';
 
 export function useFilmstrip(
-  player: VideoPlayer,
+  media: MediaPlayer,
   duration: number,
   count: number,
   enabled: boolean,
@@ -18,8 +17,8 @@ export function useFilmstrip(
   useEffect(() => {
     if (!enabled || duration <= 0 || count <= 0) return;
     let cancelled = false;
-    videoService
-      .createFilmstrip(player, { duration, count })
+    media
+      .createFilmstrip({ duration, count })
       .then((frames) => {
         if (!cancelled) setFilmstrip({ frames, settled: true });
       })
@@ -30,7 +29,7 @@ export function useFilmstrip(
     return () => {
       cancelled = true;
     };
-  }, [player, duration, count, enabled]);
+  }, [media, duration, count, enabled]);
 
   return filmstrip;
 }

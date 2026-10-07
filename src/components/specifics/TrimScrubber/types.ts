@@ -1,8 +1,8 @@
-import type { VideoPlayer } from 'expo-video';
 import type { ViewStyle } from 'react-native';
 import type { useAnimatedStyle } from 'react-native-reanimated';
 
 import type { FilmstripFrames } from '@/hooks';
+import type { MediaPlayer } from '@/services';
 
 export type TrimScrubberLabels = {
   selector: string;
@@ -12,7 +12,7 @@ export type TrimScrubberLabels = {
 };
 
 export type TrimScrubberProps = {
-  player: VideoPlayer;
+  media: MediaPlayer;
   duration: number;
   windowLength: number;
   start: number;

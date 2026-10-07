@@ -1,5 +1,4 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import type { VideoPlayer, VideoThumbnail } from 'expo-video';
 
 export type VideoRecord = {
   id: string;
@@ -43,18 +42,6 @@ export type DetailsUpdate = {
 
 export type VideoErrorCode = 'rangeOutOfBounds' | 'sourceUnreadable' | 'notFound' | 'unknown';
 
-export type VideoFrame = VideoThumbnail;
-
-export type FilmstripOptions = {
-  duration: number;
-  count: number;
-  maxWidth?: number;
-};
-
-export type PlayerOptions = Partial<
-  Pick<VideoPlayer, 'loop' | 'muted' | 'timeUpdateEventInterval'>
->;
-
 export type PageCursor = Pick<VideoRecord, 'createdAt' | 'id'>;
 
 export type PageQuery = {
@@ -86,8 +73,6 @@ export type Trimmer = (input: {
 
 export type Thumbnailer = (uri: string) => Promise<{ uri: string }>;
 
-export type LibraryPicker = () => Promise<VideoSource | null>;
-
 export type FileStore = {
   list: () => string[];
   uri: (fileName: string) => string;
@@ -105,7 +90,6 @@ export type VideoServiceDependencies = {
   thumbnails: FileStore;
   trimmer: Trimmer;
   thumbnailer: Thumbnailer;
-  picker: LibraryPicker;
   createId?: () => string;
   now?: () => number;
 };

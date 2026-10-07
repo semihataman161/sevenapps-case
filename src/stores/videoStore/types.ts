@@ -1,4 +1,4 @@
-import type { PageCursor, VideoDetails, VideoRecord } from '@/services';
+import type { PageCursor, VideoDetails, VideoRecord, VideoService } from '@/services';
 
 export type HydrationStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -24,3 +24,5 @@ export type VideoActions = {
 };
 
 export type VideoStore = VideoState & VideoActions;
+
+export type VideoStoreService = Pick<VideoService, 'listPage' | 'count' | 'get'>;

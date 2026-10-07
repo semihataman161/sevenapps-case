@@ -1,6 +1,6 @@
-import type { VideoFrame } from '@/services';
+import type { MediaFrame } from '@/services';
 
-export type FilmstripFrames = VideoFrame[];
+export type FilmstripFrames = MediaFrame[];
 
 export type Filmstrip = {
   frames: FilmstripFrames;

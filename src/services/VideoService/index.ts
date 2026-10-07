@@ -1,29 +1,16 @@
-import type { VideoPlayer } from 'expo-video';
-
-import {
-  DEFAULT_FRAME_WIDTH,
-  NATIVE_ERROR_CODES,
-  THUMBNAIL_EXTENSION,
-  VIDEO_EXTENSION,
-} from './constants';
-import { VideoServiceError } from './errors';
+import { THUMBNAIL_EXTENSION, VIDEO_EXTENSION } from './constants';
 import type {
   CropRequest,
   DetailsUpdate,
-  FilmstripOptions,
   PageQuery,
-  PlayerOptions,
   VideoDetails,
-  VideoErrorCode,
-  VideoFrame,
   VideoPage,
   VideoRecord,
   VideoServiceDependencies,
-  VideoSource,
 } from './types';
 
 export type * from './types';
-export { VideoServiceError } from './errors';
+export { videoErrorCode, VideoServiceError } from './errors';
 
 function defaultId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -70,10 +57,6 @@ export class VideoService {
       }
     }
     return removed;
-  }
-
-  pickFromLibrary(): Promise<VideoSource | null> {
-    return this.deps.picker();
   }
 
   async crop({ source, range, details }: CropRequest): Promise<VideoRecord> {
@@ -128,40 +111,6 @@ export class VideoService {
 
   thumbnailUri(fileName: string | null): string | null {
     return fileName ? this.deps.thumbnails.uri(fileName) : null;
-  }
-
-  createFilmstrip(
-    player: VideoPlayer,
-    { duration, count, maxWidth = DEFAULT_FRAME_WIDTH }: FilmstripOptions,
-  ): Promise<VideoFrame[]> {
-    if (duration <= 0 || count <= 0) return Promise.resolve([]);
-    const step = duration / count;
-    const times = Array.from({ length: count }, (_, index) =>
-      Math.min(duration, index * step + step / 2),
-    );
-    return player.generateThumbnailsAsync(times, { maxWidth });
-  }
-
-  configurePlayer(player: VideoPlayer, options: PlayerOptions): void {
-    Object.assign(player, options);
-  }
-
-  seek(player: VideoPlayer, seconds: number): void {
-    player.currentTime = seconds;
-  }
-
-  pause(player: VideoPlayer): void {
-    try {
-      player.pause();
-    } catch {}
-  }
-
-  errorCode(error: unknown): VideoErrorCode {
-    if (error instanceof VideoServiceError) return error.code;
-    const code = (error as { code?: unknown } | null)?.code;
-    const mapped = typeof code === 'string' ? NATIVE_ERROR_CODES[code] : undefined;
-    if (!mapped) console.warn('Video operation failed', error);
-    return mapped ?? 'unknown';
   }
 
   private async createThumbnail(clipUri: string, id: string): Promise<string | null> {

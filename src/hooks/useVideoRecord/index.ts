@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useVideo, useVideoStore } from '@/stores';
+import { useVideoStore } from '@/services';
+import { selectVideo } from '@/stores';
 
 import { videoKeys } from '../useVideoMutations/constants';
 import type { VideoRecordResult } from './types';
@@ -8,7 +9,7 @@ import type { VideoRecordResult } from './types';
 export type * from './types';
 
 export function useVideoRecord(id: string): VideoRecordResult {
-  const video = useVideo(id);
+  const video = useVideoStore(selectVideo(id));
   const isSettled = useVideoStore((s) => s.status === 'ready' || s.status === 'error');
   const load = useVideoStore((s) => s.load);
 

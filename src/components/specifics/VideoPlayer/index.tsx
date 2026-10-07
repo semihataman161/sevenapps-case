@@ -1,7 +1,5 @@
-import { useVideoPlayer } from 'expo-video';
-
 import { VideoFrame } from '@/components/commons';
-import { videoService } from '@/services';
+import { useMediaPlayer } from '@/hooks';
 
 import type { VideoPlayerProps } from './types';
 
@@ -13,10 +11,7 @@ export function VideoPlayer({
   loop = false,
   ...frameProps
 }: VideoPlayerProps) {
-  const player = useVideoPlayer(uri, (p) => {
-    videoService.configurePlayer(p, { loop });
-    if (autoPlay) p.play();
-  });
+  const media = useMediaPlayer(uri, { loop, autoPlay });
 
-  return <VideoFrame player={player} {...frameProps} />;
+  return <VideoFrame player={media.native} {...frameProps} />;
 }
