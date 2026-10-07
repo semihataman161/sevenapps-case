@@ -73,7 +73,11 @@ function RootNavigator() {
         <Stack.Screen name="video/[id]/index" options={{ title: '' }} />
         <Stack.Screen
           name="video/[id]/edit"
-          options={{ presentation: 'modal', title: t('nav.editDetails') }}
+          options={{
+            presentation: 'modal',
+            title: t('nav.editDetails'),
+            headerTitleAlign: 'center',
+          }}
         />
         <Stack.Screen
           name="settings"

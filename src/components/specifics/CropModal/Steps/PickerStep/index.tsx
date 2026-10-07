@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { CLIP_DURATION, MIN_SOURCE_DURATION } from '@/lib';
+import { CLIP_DURATION, MIN_SOURCE_DURATION, useBottomGap } from '@/lib';
 import { useCropDraftStore } from '@/store';
 
 import { Button, Icon, Typography } from '@/components/commons';
@@ -12,8 +12,9 @@ import type { PickerStepProps } from './types';
 
 export type * from './types';
 
-export function PickerStep({ onPicked, className = '', ...props }: PickerStepProps) {
+export function PickerStep({ onPicked, className = '', style, ...props }: PickerStepProps) {
   const { t } = useTranslation();
+  const bottomGap = useBottomGap();
   const setSource = useCropDraftStore((s) => s.setSource);
   const [isPicking, setIsPicking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +54,11 @@ export function PickerStep({ onPicked, className = '', ...props }: PickerStepPro
   };
 
   return (
-    <View className={`flex-1 pb-4 ${className}`} {...props}>
+    <View
+      className={`flex-1 ${className}`}
+      style={[{ paddingBottom: bottomGap }, style]}
+      {...props}
+    >
       <View className="flex-1 items-center justify-center px-8">
         <Animated.View
           entering={FadeInDown.duration(400)}

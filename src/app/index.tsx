@@ -11,7 +11,7 @@ import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 
 import { Button } from '@/components/commons';
 import { CropModal, EmptyState, VideoRow, type CropModalRef } from '@/components/specifics';
-import { CLIP_DURATION, useThemeColors } from '@/lib';
+import { CLIP_DURATION, useBottomGap, useThemeColors } from '@/lib';
 import { useVideoStore } from '@/store';
 
 function openVideo(id: string) {
@@ -30,6 +30,7 @@ export default function VideoListScreen() {
   const status = useVideoStore((s) => s.status);
   const hydrate = useVideoStore((s) => s.hydrate);
   const insets = useSafeAreaInsets();
+  const bottomGap = useBottomGap();
   const cropModalRef = useRef<CropModalRef>(null);
 
   const openCropModal = () => cropModalRef.current?.show();
@@ -69,7 +70,7 @@ export default function VideoListScreen() {
           keyExtractor={(id) => id}
           renderItem={renderItem}
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={{ paddingTop: 8, paddingBottom: insets.bottom + 96 }}
+          contentContainerStyle={{ paddingTop: 8, paddingBottom: insets.bottom + bottomGap + 84 }}
         />
       ) : (
         <View className="flex-1 justify-center" style={{ paddingBottom: headerHeight }}>
@@ -95,7 +96,7 @@ export default function VideoListScreen() {
         <Animated.View
           entering={FadeInUp.springify()}
           className="absolute inset-x-0 px-5"
-          style={{ bottom: insets.bottom + 12 }}
+          style={{ bottom: insets.bottom + bottomGap }}
         >
           <Button
             title={t('list.newClip')}

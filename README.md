@@ -95,7 +95,7 @@ src/
 ├── store/                    # Zustand: video list, crop draft, persisted settings
 ├── db/                       # SQLite client, migrations, repository
 ├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
-├── lib/                      # constants, time math, Yup schema, theme, player helpers, query client
+├── lib/                      # constants, time math, Yup schema, theme, layout, player helpers, query client
 ├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
 └── types/                    # Shared domain, navigation and icon types
 ```
@@ -224,6 +224,9 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
   from the very end. The player's precise duration replaces the picker's once loaded.
 - **Scalability**: FlashList with memoized, self-subscribing rows; `expo-image` with
   `recyclingKey` for thumbnails; an index on `created_at`.
+- **Bottom buttons**: `useBottomGap()` keeps bottom actions clear of the home indicator /
+  navigation bar: ≈ 50 pt from the screen edge on iOS, ≈ 64 dp on Android (gesture or
+  3-button navigation), and 16 from the edge on devices without a system bar.
 - **Reusable components**: see *Components: commons and specifics* above. `MetadataForm` is
   shared by the crop flow and the edit screen.
 - **Theme**: the choice is applied with NativeWind's `colorScheme.set()`, which overrides

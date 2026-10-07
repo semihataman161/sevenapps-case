@@ -6,7 +6,14 @@ import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { useFilmstrip } from '@/hooks';
-import { configurePlayer, pauseSafely, seekTo, segmentBounds, useThemeColors } from '@/lib';
+import {
+  configurePlayer,
+  pauseSafely,
+  seekTo,
+  segmentBounds,
+  useBottomGap,
+  useThemeColors,
+} from '@/lib';
 import { useCropDraftStore } from '@/store';
 
 import { Button, Icon, Typography, VideoFrame } from '@/components/commons';
@@ -21,9 +28,10 @@ const MAX_LOOKAHEAD = 0.15;
 const SEEK_SETTLE_MS = 150;
 const FRAME_COUNT = 8;
 
-export function TrimStep({ source, onNext, className = '', ...props }: TrimStepProps) {
+export function TrimStep({ source, onNext, className = '', style, ...props }: TrimStepProps) {
   const { t } = useTranslation();
   const colors = useThemeColors();
+  const bottomGap = useBottomGap();
   const start = useCropDraftStore((s) => s.start);
   const setStart = useCropDraftStore((s) => s.setStart);
   const setDuration = useCropDraftStore((s) => s.setDuration);
@@ -118,7 +126,11 @@ export function TrimStep({ source, onNext, className = '', ...props }: TrimStepP
 
   if (isPreparing) {
     return (
-      <View className={`flex-1 items-center justify-center gap-4 pb-4 ${className}`} {...props}>
+      <View
+        className={`flex-1 items-center justify-center gap-4 ${className}`}
+        style={[{ paddingBottom: bottomGap }, style]}
+        {...props}
+      >
         <ActivityIndicator size="large" color={colors.accent} />
         <Typography tone="muted">{t('crop.preparing')}</Typography>
       </View>
@@ -128,7 +140,8 @@ export function TrimStep({ source, onNext, className = '', ...props }: TrimStepP
   return (
     <Animated.View
       entering={FadeIn.duration(250)}
-      className={`flex-1 pb-4 ${className}`}
+      className={`flex-1 ${className}`}
+      style={[{ paddingBottom: bottomGap }, style]}
       {...props}
     >
       <ScrollView contentContainerClassName="grow justify-center px-5 py-4" bounces={false}>
