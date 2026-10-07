@@ -8,6 +8,7 @@ const es: Translation = {
     cancel: 'Cancelar',
     close: 'Cerrar',
     delete: 'Eliminar',
+    dismiss: 'Descartar',
     next: 'Siguiente',
     tryAgain: 'Reintentar',
   },
@@ -32,6 +33,8 @@ const es: Translation = {
     clearSearch: 'Borrar búsqueda',
     noResultsTitle: 'Sin resultados',
     noResultsMessage: 'Ningún clip contiene «{{query}}» en el título o la descripción.',
+    cropping: 'Recortando…',
+    cropFailed: 'No guardado',
   },
   notFound: {
     title: 'Página no encontrada',
@@ -75,7 +78,6 @@ const es: Translation = {
     segmentLabel: 'Fragmento',
     yourVideo: 'tu vídeo',
     cropAndSave: 'Recortar y guardar',
-    cropping: 'Recortando…',
   },
   form: {
     name: 'Nombre',

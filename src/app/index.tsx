@@ -1,19 +1,21 @@
 import { router } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import { FlashList, type FlashListRef, type ListRenderItem } from '@shopify/flash-list';
 
 import { Button, Spinner } from '@/components/commons';
 import {
+  CropJobRow,
   CropModal,
   EmptyState,
   VideoListHeader,
   VideoRow,
   type CropModalRef,
 } from '@/components/specifics';
+import { useCropJobs } from '@/hooks';
 import { CLIP_DURATION } from '@/lib';
 import { usePick, useVideoStore } from '@/stores';
 
@@ -32,10 +34,20 @@ export default function VideoListScreen() {
     useVideoStore,
     ['ids', 'status', 'total', 'query', 'isLoadingMore', 'hydrate', 'loadMore', 'search'],
   );
+  const { jobs, retry, dismiss } = useCropJobs();
   const cropModalRef = useRef<CropModalRef>(null);
+  const listRef = useRef<FlashListRef<string>>(null);
+  const lastJobIdRef = useRef(0);
+  const latestJobId = jobs[0]?.id ?? 0;
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const openCropModal = () => cropModalRef.current?.show();
+
+  useEffect(() => {
+    if (latestJobId <= lastJobIdRef.current) return;
+    lastJobIdRef.current = latestJobId;
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [latestJobId]);
 
   const renderItem = useCallback<ListRenderItem<string>>(
     ({ item }) => <VideoRow id={item} onPress={openVideo} />,
@@ -97,13 +109,24 @@ export default function VideoListScreen() {
         />
       </View>
 
-      {ids.length > 0 ? (
+      {ids.length > 0 || jobs.length > 0 ? (
         <FlashList
+          ref={listRef}
           data={ids}
+          maintainVisibleContentPosition={{ disabled: true }}
           keyExtractor={(id) => id}
           renderItem={renderItem}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
+          ListHeaderComponent={
+            jobs.length > 0 ? (
+              <View>
+                {jobs.map((job) => (
+                  <CropJobRow key={job.id} job={job} onRetry={retry} onDismiss={dismiss} />
+                ))}
+              </View>
+            ) : null
+          }
           ListFooterComponent={isLoadingMore ? <Spinner className="py-6" /> : null}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}

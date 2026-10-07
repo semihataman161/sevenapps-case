@@ -14,10 +14,12 @@ export function MediaItem({
   title,
   imageUri,
   imageKey,
+  leading,
   meta,
   description,
   titleMaxChars,
   descriptionMaxChars,
+  footer,
   ...props
 }: MediaItemProps) {
   return (
@@ -27,7 +29,8 @@ export function MediaItem({
           className="overflow-hidden rounded bg-surface dark:bg-surface-dark"
           style={{ width: THUMBNAIL_WIDTH, aspectRatio: THUMBNAIL_RATIO }}
         >
-          {imageUri ? <Thumbnail source={{ uri: imageUri }} recyclingKey={imageKey} /> : null}
+          {leading ??
+            (imageUri ? <Thumbnail source={{ uri: imageUri }} recyclingKey={imageKey} /> : null)}
         </View>
 
         <View className="flex-1">
@@ -49,6 +52,7 @@ export function MediaItem({
               {description}
             </Typography>
           ) : null}
+          {footer ? <View className="mt-3">{footer}</View> : null}
         </View>
       </Row>
       <Divider />

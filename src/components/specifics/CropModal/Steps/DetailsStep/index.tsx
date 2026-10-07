@@ -1,8 +1,7 @@
-import * as Haptics from 'expo-haptics';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { useCropVideoMutation, videoErrorKey } from '@/hooks';
+import { useCropVideoMutation } from '@/hooks';
 import { formatSeconds, formatTime, segmentBounds, type MetadataFormValues } from '@/lib';
 import { useCropDraftStore } from '@/stores';
 
@@ -21,19 +20,12 @@ export function DetailsStep({
   const { t } = useTranslation();
   const start = useCropDraftStore((s) => s.start);
   const cropMutation = useCropVideoMutation();
-  const isPending = cropMutation.isPending;
   const bounds = segmentBounds(start, source.duration);
 
-  const onSubmit = (details: MetadataFormValues) =>
-    cropMutation.mutate(
-      { source, start, details },
-      {
-        onSuccess: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-          onComplete();
-        },
-      },
-    );
+  const onSubmit = (details: MetadataFormValues) => {
+    cropMutation.mutate({ source, start, details });
+    onComplete();
+  };
 
   return (
     <KeyboardAwareScroll contentContainerClassName={contentContainerClassName} {...props}>
@@ -54,10 +46,8 @@ export function DetailsStep({
       </View>
 
       <MetadataForm
-        submitLabel={isPending ? t('crop.cropping') : t('crop.cropAndSave')}
+        submitLabel={t('crop.cropAndSave')}
         submitIcon="arrow-forward"
-        isSubmitting={isPending}
-        submitError={cropMutation.isError ? t(videoErrorKey(cropMutation.error, 'crop')) : null}
         onSubmit={onSubmit}
       />
     </KeyboardAwareScroll>

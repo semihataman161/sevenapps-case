@@ -15,3 +15,12 @@ export type VideoErrorKey =
   | 'errors.cropFailed'
   | 'errors.updateFailed'
   | 'errors.deleteFailed';
+
+export type CropJobStatus = 'pending' | 'error';
+
+export type CropJob = {
+  id: number;
+  title: string;
+  status: CropJobStatus;
+  errorKey: VideoErrorKey | null;
+};

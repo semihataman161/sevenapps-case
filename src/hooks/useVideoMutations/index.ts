@@ -1,21 +1,23 @@
-import { useIsMutating, useMutation } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import {
+  useMutation,
+  useMutationState,
+  useQueryClient,
+  type Mutation,
+} from '@tanstack/react-query';
 
 import { segmentBounds } from '@/lib';
 import { videoService, type VideoDetails, type VideoRecord } from '@/services';
 import { useVideoStore } from '@/stores';
 
 import { FALLBACK_ERROR_KEYS, KNOWN_ERROR_KEYS, videoKeys } from './constants';
-import type { CropVideoInput, VideoErrorKey, VideoOperation } from './types';
+import type { CropJob, CropVideoInput, VideoErrorKey, VideoOperation } from './types';
 
 export type * from './types';
 
 export function videoErrorKey(error: unknown, operation: VideoOperation): VideoErrorKey {
   const code = videoService.errorCode(error);
   return code === 'unknown' ? FALLBACK_ERROR_KEYS[operation] : KNOWN_ERROR_KEYS[code];
-}
-
-export function useIsCropping(): boolean {
-  return useIsMutating({ mutationKey: videoKeys.crop() }) > 0;
 }
 
 export function useCropVideoMutation() {
@@ -29,8 +31,61 @@ export function useCropVideoMutation() {
         range: segmentBounds(start, source.duration),
         details,
       }),
-    onSuccess: (video) => add(video),
+    onSuccess: (video) => {
+      add(video);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    },
+    onError: () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+    },
+    gcTime: Infinity,
   });
+}
+
+export function isCropJob(mutation: Mutation<unknown, Error, unknown, unknown>): boolean {
+  const { status } = mutation.state;
+  return status === 'pending' || status === 'error';
+}
+
+export function toCropJob(mutation: Mutation<unknown, Error, unknown, unknown>): CropJob {
+  const { status, variables, error } = mutation.state;
+  return {
+    id: mutation.mutationId,
+    title: (variables as CropVideoInput).details.name,
+    status: status === 'error' ? 'error' : 'pending',
+    errorKey: status === 'error' ? videoErrorKey(error, 'crop') : null,
+  };
+}
+
+export function useCropJobs() {
+  const queryClient = useQueryClient();
+  const cropMutation = useCropVideoMutation();
+  const jobs = [
+    ...useMutationState({
+      filters: { mutationKey: videoKeys.crop(), predicate: isCropJob },
+      select: toCropJob,
+    }),
+  ].reverse();
+
+  const findMutation = (id: number) =>
+    queryClient.getMutationCache().find({
+      mutationKey: videoKeys.crop(),
+      predicate: (mutation) => mutation.mutationId === id,
+    });
+
+  const dismiss = (id: number) => {
+    const mutation = findMutation(id);
+    if (mutation) queryClient.getMutationCache().remove(mutation);
+  };
+
+  const retry = (id: number) => {
+    const variables = findMutation(id)?.state.variables as CropVideoInput | undefined;
+    if (!variables) return;
+    dismiss(id);
+    cropMutation.mutate(variables);
+  };
+
+  return { jobs, retry, dismiss };
 }
 
 export function useUpdateVideoMutation(id: string) {

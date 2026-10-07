@@ -8,6 +8,7 @@ const de: Translation = {
     cancel: 'Abbrechen',
     close: 'Schließen',
     delete: 'Löschen',
+    dismiss: 'Verwerfen',
     next: 'Weiter',
     tryAgain: 'Erneut versuchen',
   },
@@ -32,6 +33,8 @@ const de: Translation = {
     clearSearch: 'Suche löschen',
     noResultsTitle: 'Keine Treffer',
     noResultsMessage: 'Kein Clip enthält „{{query}}“ im Titel oder in der Beschreibung.',
+    cropping: 'Wird zugeschnitten…',
+    cropFailed: 'Nicht gespeichert',
   },
   notFound: {
     title: 'Seite nicht gefunden',
@@ -77,7 +80,6 @@ const de: Translation = {
     segmentLabel: 'Ausschnitt',
     yourVideo: 'deinem Video',
     cropAndSave: 'Zuschneiden & speichern',
-    cropping: 'Wird zugeschnitten…',
   },
   form: {
     name: 'Name',

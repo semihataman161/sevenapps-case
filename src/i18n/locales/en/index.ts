@@ -6,6 +6,7 @@ const en = {
     cancel: 'Cancel',
     close: 'Close',
     delete: 'Delete',
+    dismiss: 'Dismiss',
     next: 'Next',
     tryAgain: 'Try again',
   },
@@ -30,6 +31,8 @@ const en = {
     clearSearch: 'Clear search',
     noResultsTitle: 'No matches',
     noResultsMessage: 'No clip title or description contains “{{query}}”.',
+    cropping: 'Cropping…',
+    cropFailed: 'Not saved',
   },
   notFound: {
     title: 'Page not found',
@@ -73,7 +76,6 @@ const en = {
     segmentLabel: 'Segment',
     yourVideo: 'your video',
     cropAndSave: 'Crop & save',
-    cropping: 'Cropping…',
   },
   form: {
     name: 'Name',

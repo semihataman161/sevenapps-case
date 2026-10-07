@@ -1,4 +1,5 @@
 export * from './ActionRow';
+export * from './CropJobRow';
 export * from './CropModal';
 export * from './EmptyState';
 export * from './HeaderBackButton';

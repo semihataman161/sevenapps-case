@@ -8,6 +8,7 @@ const tr: Translation = {
     cancel: 'Vazgeç',
     close: 'Kapat',
     delete: 'Sil',
+    dismiss: 'Kaldır',
     next: 'İleri',
     tryAgain: 'Tekrar dene',
   },
@@ -32,6 +33,8 @@ const tr: Translation = {
     clearSearch: 'Aramayı temizle',
     noResultsTitle: 'Sonuç yok',
     noResultsMessage: 'Başlığında veya açıklamasında “{{query}}” geçen bir klip yok.',
+    cropping: 'Kırpılıyor…',
+    cropFailed: 'Kaydedilemedi',
   },
   notFound: {
     title: 'Sayfa bulunamadı',
@@ -75,7 +78,6 @@ const tr: Translation = {
     segmentLabel: 'Kesit',
     yourVideo: 'seçtiğin video',
     cropAndSave: 'Kırp ve kaydet',
-    cropping: 'Kırpılıyor…',
   },
   form: {
     name: 'İsim',

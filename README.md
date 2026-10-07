@@ -13,7 +13,7 @@ Built for the SevenApps React Native case study.
 | **Clip list** (`/`) | List of cropped clips with a total count; each entry is a compact row (still, date, length, title, description). Tap to open. Typographic empty and error states. |
 | **Details** (`/videos/[id]`) | Plays the clip (native controls, looping) with its name, description, date and length. Edit and delete actions. |
 | **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet; on Android a bottom sheet over a dimmed backdrop that closes when dragged down) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a film-strip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
-| **Cropping** | `trimVideo` from `expo-trim-video`, run through a TanStack Query mutation. |
+| **Cropping** | `trimVideo` from `expo-trim-video`, run in the background through a TanStack Query mutation. The modal closes right away; a **Cropping…** row sits at the top of the list until the clip is saved, and a failed crop stays there with **Try again** / **Dismiss**. |
 | **Edit** (`/videos/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
 | **Settings** (`/settings`) | Settings icon at the top right of the clip list. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
 | **Bonus tech** | Expo SQLite for storage, Reanimated for the scrubber/press/entering animations, Yup validation (via react-hook-form). |
@@ -71,7 +71,9 @@ If CocoaPods fails with a Unicode/encoding error, run with a UTF-8 locale:
 3. Drag the red selection window along the film strip, or tap the strip to jump. The preview loops the
    selected 5 seconds. Tap the video to pause/play. Tap **Next**.
 4. Enter a name (required, 2–60 chars) and an optional description (≤ 500 chars), then
-   **Crop & save**. The modal closes and the new clip appears at the top of the list.
+   **Crop & save**. The modal closes right away and a **Cropping…** row appears at the top of
+   the list while the clip is processed in the background; it turns into the new clip when it's
+   saved. You can keep browsing or start another crop in the meantime.
 5. From details, use **Edit details** to change the text, or **Delete clip**.
 6. Tap the settings icon at the top right of the clip list to change the theme or language.
 
@@ -178,7 +180,7 @@ nothing about video diaries, and can be used in very different places:
 | `Sheet` | `Modal` presented as an iOS page sheet / an Android bottom sheet (dimmed backdrop, grabber, drag down to close). Takes `onClose`, optional `onBackPress` and a `header` that is also the drag handle |
 | `Header` | Uppercase title with optional `left` / `right` slots (no built-in horizontal padding) |
 | `PageHeader` | Screen masthead: `meta` and `topAction` on top, serif `title` with an `action` beside it, optional `footer` (e.g. a search field), rule below; adds the top safe area |
-| `MediaItem` | Tappable list row: thumbnail (`imageUri`), `meta` overline, serif `title`, `description`, optional `titleMaxChars` / `descriptionMaxChars`, rule below |
+| `MediaItem` | Tappable list row: thumbnail (`imageUri`, or any `leading` content in its place), `meta` overline, serif `title`, `description`, optional `footer` (e.g. actions), optional `titleMaxChars` / `descriptionMaxChars`, rule below |
 | `Stepper` | Generic step progress: takes `steps` (labels) and `current` (index); shows `01 / 03`, the current label and a 1 px progress rule sized by the number of steps |
 | `VideoFrame` | Letterboxed surface (6 px radius) for an `expo-video` player; never taller than `maxHeightRatio` of the screen (default 0.42) |
 
@@ -200,6 +202,7 @@ commons:
 | --- | --- |
 | `VideoListHeader` | `PageHeader` filled with the video list's texts: total clips, settings icon button, title, `+ NEW CLIP` |
 | `VideoEntry` / `VideoRow` | `MediaItem` filled from a `DiaryVideo` (still, date · length, title ≤ 30 chars, description ≤ 80 chars) |
+| `CropJobRow` | `MediaItem` for a background crop: spinner while it runs; on failure an alert icon, the translated error and `Try again` / `Dismiss` buttons |
 | `ActionRow` | `Row` + `Typography` + `Icon` + `Divider` (full-width typographic action, e.g. `EDIT DETAILS →`, `DELETE ×`) |
 | `EmptyState` | `Typography` only: accent overline, serif headline, message, optional action; `align` `start` or `center` |
 | `OptionRow` | `Pressable` + `Row` + `Typography`; the selected row is a full-width inverted (ink) band |
@@ -245,7 +248,8 @@ modules directly. Tests construct services with fakes, so no module mocking is n
 ```
          ┌─────────── TanStack Query mutation (useCropVideoMutation) ───────────┐
 Step 3 → │ videoService.crop(): trim → move clip → thumbnail → INSERT into SQLite │ → Zustand add()
-         └───────────────────────────────────────────────────────────────────────┘
+  │      └───────────────────────────────────────────────────────────────────────┘
+  └─ modal closes at once; useCropJobs() (useMutationState) shows pending / failed crops in the list
 App start: SQLite ──videoService.listPage() + count()──hydrate()──▶ Zustand video store ──▶ screens
 Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cursor }) ──▶ appended to the store
 ```
@@ -280,8 +284,13 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
   The keys are checked against the store's type, and since it is built on `useShallow` the
   component re-renders only when one of the picked fields changes.
 - **TanStack Query** runs every async write as a mutation (crop, update, delete), giving
-  pending/error state to the UI. The crop modal can't be swiped away, closed or stepped back
-  while a crop is running (`useIsCropping`, built on `useIsMutating`). Mutation keys come
+  pending/error state to the UI. Cropping is real background work: **Crop & save** starts the
+  mutation and closes the modal immediately. The mutation lives in the `QueryClient`, not in
+  the modal, so it keeps running after the modal unmounts and its `onSuccess` (add to the
+  store, success haptic) still fires. `useCropJobs` reads the running and failed crops with
+  `useMutationState` and the list shows them as `CropJobRow`s; several crops can run at once.
+  Failed crops are kept (`gcTime: Infinity`) until the user taps **Try again** (runs the same
+  input again) or **Dismiss** (removes it from the mutation cache). Mutation keys come
   from one key factory (`videoKeys`). Mutations don't retry automatically since they
   write to disk.
 - **Files.** The trimmer writes to a temp/cache location; the clip is moved to
@@ -359,7 +368,8 @@ Zustand stores (including settings persistence, paging and search), the services
 pipeline with rollback, paging, orphaned-file clean-up, details update, delete, filmstrip
 timing, player helpers and error codes; `SqliteVideoRepository` SQL, parameters, search
 escaping and row mapping; `SqliteDatabase` migrations; `KeyValueStorage`), the daily
-file-sweep schedule, search in the video store (including ignoring outdated results)
+file-sweep schedule, search in the video store (including ignoring outdated results),
+which background crops are listed as running or failed (a real `QueryClient`),
 using injected fakes instead of module mocks, device-language selection, and locale
 completeness (same keys and placeholders in every language).
 
