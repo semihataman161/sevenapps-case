@@ -27,6 +27,11 @@ const de: Translation = {
     errorMessage: 'Beim Lesen deiner gespeicherten Clips ist etwas schiefgelaufen.',
     openClip: '{{name}} öffnen',
   },
+  notFound: {
+    title: 'Seite nicht gefunden',
+    message: 'Dieser Link führt in Video Diary nirgendwohin.',
+    goHome: 'Zu meinem Tagebuch',
+  },
   video: {
     notFoundTitle: 'Clip nicht gefunden',
     notFoundMessage: 'Er wurde möglicherweise gelöscht.',

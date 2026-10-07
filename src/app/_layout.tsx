@@ -18,6 +18,8 @@ registerCssInterop();
 initPreferences();
 SplashScreen.preventAutoHideAsync();
 
+export const unstable_settings = { anchor: 'index' };
+
 export default function RootLayout() {
   const status = useVideoStore((s) => s.status);
   const hydrate = useVideoStore((s) => s.hydrate);
@@ -70,15 +72,16 @@ function RootNavigator() {
           name="index"
           options={{ title: t('nav.diary'), headerTitleAlign: 'center' }}
         />
-        <Stack.Screen name="video/[id]/index" options={{ title: '' }} />
+        <Stack.Screen name="videos/[id]/index" options={{ title: '' }} />
         <Stack.Screen
-          name="video/[id]/edit"
+          name="videos/[id]/edit"
           options={{
             presentation: 'modal',
             title: t('nav.editDetails'),
             headerTitleAlign: 'center',
           }}
         />
+        <Stack.Screen name="+not-found" options={{ title: '' }} />
         <Stack.Screen
           name="settings"
           options={{

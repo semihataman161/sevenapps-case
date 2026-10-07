@@ -38,7 +38,7 @@ export default function VideoDetailsScreen() {
     );
   }
 
-  const openEditor = () => router.push({ pathname: '/video/[id]/edit', params: { id: video.id } });
+  const openEditor = () => router.push({ pathname: '/videos/[id]/edit', params: { id: video.id } });
 
   const confirmDelete = () =>
     Alert.alert(t('video.deleteTitle'), t('video.deleteMessage', { name: video.name }), [

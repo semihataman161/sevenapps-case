@@ -15,7 +15,7 @@ import { CLIP_DURATION, useBottomGap, useThemeColors } from '@/lib';
 import { useVideoStore } from '@/store';
 
 function openVideo(id: string) {
-  router.push({ pathname: '/video/[id]', params: { id } });
+  router.push({ pathname: '/videos/[id]', params: { id } });
 }
 
 function openSettings() {

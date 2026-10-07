@@ -11,10 +11,10 @@ Built for the SevenApps React Native case study.
 | Area | What's there |
 | --- | --- |
 | **Clip list** (`/`) | Persistent list of cropped clips with poster thumbnails, duration badge and date. Tap to open. Empty and error states. |
-| **Details** (`/video/[id]`) | Plays the clip (native controls, looping) with its name, description, date and length. Edit and delete actions. |
+| **Details** (`/videos/[id]`) | Plays the clip (native controls, looping) with its name, description, date and length. Edit and delete actions. |
 | **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet; on Android a bottom sheet over a dimmed backdrop that closes when dragged down) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a filmstrip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
 | **Cropping** | `trimVideo` from `expo-trim-video`, run through a TanStack Query mutation. |
-| **Edit** (`/video/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
+| **Edit** (`/videos/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
 | **Settings** (`/settings`) | Gear icon on the clip list. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
 | **Bonus tech** | Expo SQLite for storage, Reanimated for the scrubber/press/entering animations, Yup validation (via react-hook-form). |
 
@@ -82,11 +82,12 @@ Videos shorter than 5 s are kept whole. Videos shorter than 1 s are rejected.
 ```
 src/
 ├── app/                      # Expo Router routes (screens only)
-│   ├── _layout.tsx           # Providers, theme, root stack, splash until hydrated
+│   ├── _layout.tsx           # Providers, theme, root stack (anchored on the list), splash until hydrated
 │   ├── index.tsx             # Clip list
-│   ├── video/[id]/index.tsx  # Details
-│   ├── video/[id]/edit.tsx   # Edit (modal)
-│   └── settings.tsx          # Theme + language
+│   ├── videos/[id]/index.tsx # Details
+│   ├── videos/[id]/edit.tsx  # Edit (modal)
+│   ├── settings.tsx          # Theme + language
+│   └── +not-found.tsx        # Unknown links / deep links
 ├── components/
 │   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
 │   └── specifics/            # App components composed from commons: OptionRow, VideoCard, CropModal, …

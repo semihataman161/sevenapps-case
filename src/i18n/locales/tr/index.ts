@@ -27,6 +27,11 @@ const tr: Translation = {
     errorMessage: 'Kayıtlı kliplerin okunurken bir şeyler ters gitti.',
     openClip: '{{name}} klibini aç',
   },
+  notFound: {
+    title: 'Sayfa bulunamadı',
+    message: "Bu bağlantı Video Diary'de hiçbir yere çıkmıyor.",
+    goHome: 'Günlüğüme git',
+  },
   video: {
     notFoundTitle: 'Klip bulunamadı',
     notFoundMessage: 'Silinmiş olabilir.',

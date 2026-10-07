@@ -27,6 +27,11 @@ const es: Translation = {
     errorMessage: 'Algo salió mal al leer tus clips guardados.',
     openClip: 'Abrir {{name}}',
   },
+  notFound: {
+    title: 'Página no encontrada',
+    message: 'Este enlace no lleva a ninguna parte en Video Diary.',
+    goHome: 'Ir a mi diario',
+  },
   video: {
     notFoundTitle: 'Clip no encontrado',
     notFoundMessage: 'Puede que se haya eliminado.',

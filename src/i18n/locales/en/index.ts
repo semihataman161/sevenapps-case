@@ -25,6 +25,11 @@ const en = {
     errorMessage: 'Something went wrong while reading your saved clips.',
     openClip: 'Open {{name}}',
   },
+  notFound: {
+    title: 'Page not found',
+    message: "This link doesn't lead anywhere in Video Diary.",
+    goHome: 'Go to my diary',
+  },
   video: {
     notFoundTitle: 'Clip not found',
     notFoundMessage: 'It may have been deleted.',
