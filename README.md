@@ -92,9 +92,8 @@ src/
 │   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
 │   └── specifics/            # App components composed from commons: VideoEntry, ArchiveHeader, CropModal, …
 ├── hooks/                    # TanStack mutations, filmstrip frames
-├── services/                 # cropVideo pipeline, file storage
-├── store/                    # Zustand: video list, crop draft, persisted settings
-├── db/                       # SQLite client, migrations, repository
+├── services/                 # Self-contained service classes (VideoService, SqliteDatabase, FileStorage, KeyValueStorage) + container
+├── stores/                   # Zustand: video list, crop draft, persisted settings
 ├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
 ├── lib/                      # constants, time math, text truncation, Yup schema, theme, layout, player helpers, query client
 ├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
@@ -131,7 +130,7 @@ components/specifics/VideoEntry/
   their own barrel, to avoid import cycles.
 - Subcomponents used by a single component live in its folder (e.g.
   `TrimScrubber/Filmstrip`) and aren't exported from the barrel.
-- Layers only import downward: `types` → `lib`, `i18n`, `db` → `services` → `store` →
+- Layers only import downward: `types` → `lib`, `i18n` → `services` → `stores` →
   `hooks` → `components` → `setup` / `app`. There are no runtime import cycles.
 - `src/app/` is the exception: Expo Router treats every file there as a route, so route
   files stay flat and contain no component or type declarations.
@@ -177,7 +176,7 @@ nothing about video diaries, and can be used in very different places:
 | `Stepper` | Generic step progress: takes `steps` (labels) and `current` (index); shows `01 / 03`, the current label and a 1 px progress rule sized by the number of steps |
 | `VideoFrame` | Letterboxed surface (6 px radius) for an `expo-video` player; never taller than `maxHeightRatio` of the screen (default 0.42) |
 
-Commons don't import app data (`store`, `services`, `hooks`, `db`) and never import specifics.
+Commons don't import app data (`stores`, `services`, `hooks`) and never import specifics.
 Components take everything they show through props: no translation keys, app constants or
 screen-specific spacing are hard-coded inside reusable components. Generic behaviour lives in
 a commons component (`Stepper`, `PageHeader`, `MediaItem`, …); a thin specifics component
@@ -213,21 +212,58 @@ Screens in `src/app/` can use both. Every component extends the props of what it
 and forwards the rest with `...props`, so any native prop can be passed through. A passed
 `style` is merged with the component's own style, not replaced.
 
+### Services
+
+Every service is a class in its own folder under `src/services` and works like a small
+library: it imports nothing from the app (`@/lib`, `@/types`, other services), receives
+everything it depends on through its constructor, and exports its own types. Copy a folder
+into another project and it works there.
+
+| Service | Responsibility | Dependencies (injected) |
+| --- | --- | --- |
+| `VideoService` | Everything video: pick from the library, crop (trim → store file → poster → persist, with rollback), paged listing (`listPage`, `count`), update details, delete, orphaned-file clean-up, file URIs, filmstrip frames, player helpers (`configurePlayer`, `seek`, `pause`), error codes | `repository`, `videos` / `thumbnails` file stores, `trimmer`, `thumbnailer`, `picker`, optional `createId` / `now` |
+| `VideoService/SqliteVideoRepository` | SQL for the `videos` table; one implementation of `VideoRepositoryContract` | a connection (`SqliteDatabase`) |
+| `SqliteDatabase` | Opens SQLite once and runs versioned migrations | `name`, `migrations`, optional `open` |
+| `FileStorage` | One folder in the documents directory: list files, resolve URIs, move files in, delete | folder name |
+| `KeyValueStorage` | Synchronous key-value store (used by the persisted settings store) | backend (defaults to `expo-sqlite/kv-store`) |
+
+The native modules (`expo-trim-video`, `expo-video-thumbnails`, `expo-image-picker`) are
+wrapped in small adapters (`VideoService/adapters`). `services/container` is the only place
+that wires concrete services together and exports the instances the app uses
+(`videoService`, `keyValueStorage`); the rest of the app never calls the native video
+modules directly. Tests construct services with fakes, so no module mocking is needed.
+
 ### Data flow
 
 ```
          ┌─────────── TanStack Query mutation (useCropVideoMutation) ───────────┐
-Step 3 → │ trimVideo() → move clip to documents → thumbnail → INSERT into SQLite │ → Zustand add()
+Step 3 → │ videoService.crop(): trim → move clip → thumbnail → INSERT into SQLite │ → Zustand add()
          └───────────────────────────────────────────────────────────────────────┘
-App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store ──selectors──▶ screens
+App start: SQLite ──videoService.listPage() + count()──hydrate()──▶ Zustand video store ──▶ screens
+Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cursor }) ──▶ appended to the store
 ```
 
-- **SQLite is the source of truth.** All SQL lives in `db/videoRepository`; schema changes
-  go through versioned migrations (`PRAGMA user_version`) in `db/migrations`.
-- **Zustand** holds the in-memory list (`ids` + `byId`) hydrated at launch, plus the
+- **SQLite is the source of truth.** All SQL lives in `VideoService/SqliteVideoRepository`;
+  queries are parameterised and select explicit columns (no `SELECT *`). Schema changes go
+  through append-only, versioned migrations (`PRAGMA user_version`) run in one exclusive
+  transaction by `SqliteDatabase`, which opens the database asynchronously, once, in WAL
+  mode; the video table's migrations live in `VideoService/migrations`.
+- **Pagination.** The list loads 20 clips at a time with keyset pagination on
+  `(created_at, id)` (backed by a composite index), so pages stay stable while clips are
+  added or removed. The header shows the real total from `COUNT(*)`.
+- **Errors.** Services report typed codes (`VideoServiceError` with `notFound`,
+  `rangeOutOfBounds`, `sourceUnreadable`, `unknown`) instead of English messages; the hooks
+  layer maps them to translated messages per operation (`videoErrorKey`), so the UI never
+  shows raw database or native text.
+- **Zustand** holds the loaded pages (`ids` + `byId`, `total`, `nextCursor`) hydrated at launch, plus the
   ephemeral crop-modal draft (`cropDraftStore`) shared by the three steps and cleared when
   the modal closes. List rows subscribe to their own record, so editing one clip re-renders
   only that row.
+- **Store layout**: each store lives in `src/stores/<name>Store/` and is exposed as a
+  `use<Name>Store` hook. Its types split data from behaviour (`<Name>State` for the data,
+  `<Name>Actions` for the functions, `<Name>Store` for both), and its initial state is a
+  single constant in `constants.ts` (`INITIAL_<NAME>_STATE`) reused by the store, its reset
+  action and the tests.
 - **TanStack Query** runs every async write as a mutation (crop, update, delete), giving
   pending/error state to the UI. The crop modal can't be swiped away, closed or stepped back
   while a crop is running (`useIsMutating`). Mutations don't retry automatically since they
@@ -236,7 +272,8 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
   `Documents/videos/<id>.mp4` and a poster frame to `Documents/thumbnails/<id>.jpg`. Only
   **file names** go into the database, and URIs are resolved at runtime, because the iOS app
   container path can change between installs/updates. If the DB insert fails, the written
-  files are removed.
+  files are removed, and on every launch `removeOrphanedFiles()` deletes files that no
+  record references (e.g. after a crash between saving a file and inserting its row).
 
 ### Notable details
 
@@ -260,8 +297,8 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
 - **Trim bounds**: native trimmers reject an `end` past the real duration, and picker
   durations are rounded, so `segmentBounds()` clamps the segment and keeps a 50 ms margin
   from the very end. The player's precise duration replaces the picker's once loaded.
-- **Scalability**: FlashList with memoized, self-subscribing rows; `expo-image` with
-  `recyclingKey` for thumbnails; an index on `created_at`.
+- **Scalability**: paged loading (20 per page) into FlashList with self-subscribing rows;
+  `expo-image` with `recyclingKey` for thumbnails; a composite `(created_at, id)` index.
 - **Bottom buttons**: `useBottomGap()` keeps bottom actions clear of the home indicator /
   navigation bar: ≈ 50 pt from the screen edge on iOS, ≈ 64 dp on Android (gesture or
   3-button navigation), and 16 from the edge on devices without a system bar.
@@ -271,9 +308,10 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
   React Native's app-wide `Appearance`. So Tailwind `dark:` classes, `useColorScheme()`-based
   colours (headers, icons) and native UI (alerts, keyboard, video controls) all switch
   together. "System" follows the device.
-- **Settings persistence**: a Zustand `persist` store backed by `expo-sqlite/kv-store`'s
-  **synchronous** API. Preferences are restored before the first render, so there's no
-  flash of the wrong theme or language on launch.
+- **Settings persistence**: a Zustand `persist` store backed by `KeyValueStorage`, which wraps
+  `expo-sqlite/kv-store`'s **synchronous** API. Only `theme` and `language` are saved, under
+  the app-prefixed key `video-diary/settings`. Preferences are restored before the first
+  render, so there's no flash of the wrong theme or language on launch.
 - **i18n**: i18next with bundled resources, initialised synchronously. "Device language" picks
   the first supported language from the device's list (falls back to English) and is
   re-checked when the app returns to the foreground (Android doesn't restart on a language
@@ -298,10 +336,13 @@ App start: SQLite (source of truth) ──hydrate()──▶ Zustand video store
 npm test
 ```
 
-Unit tests cover segment math and formatting, the Yup schema, both Zustand stores, the
-crop pipeline (trim → store → persist, rollback on DB failure, error mapping) with native
-modules mocked, device-language selection, and locale completeness (same keys and
-placeholders in every language).
+Unit tests cover segment math, formatting and text truncation, the Yup schema, all three
+Zustand stores (including settings persistence and paging), the services (`VideoService` crop
+pipeline with rollback, paging, orphaned-file clean-up, details update, delete, filmstrip
+timing, player helpers and error codes; `SqliteVideoRepository` SQL, parameters and row
+mapping; `SqliteDatabase` migrations; `KeyValueStorage`)
+using injected fakes instead of module mocks, device-language selection, and locale
+completeness (same keys and placeholders in every language).
 
 ## Supported devices
 

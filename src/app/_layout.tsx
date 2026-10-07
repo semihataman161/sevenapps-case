@@ -12,8 +12,9 @@ import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { queryClient, useThemeColors } from '@/lib';
+import { videoService } from '@/services';
 import { initPreferences, registerCssInterop } from '@/setup';
-import { useVideoStore } from '@/store';
+import { useVideoStore } from '@/stores';
 
 registerCssInterop();
 initPreferences();
@@ -39,6 +40,13 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsReady && (status === 'ready' || status === 'error')) SplashScreen.hideAsync();
   }, [fontsReady, status]);
+
+  useEffect(() => {
+    if (status !== 'ready') return;
+    videoService
+      .removeOrphanedFiles()
+      .catch((error) => console.warn('Could not clean up orphaned files', error));
+  }, [status]);
 
   if (!fontsReady) return null;
 

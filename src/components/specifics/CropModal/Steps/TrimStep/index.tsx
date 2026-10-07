@@ -9,15 +9,13 @@ import { useFilmstrip } from '@/hooks';
 import {
   CLIP_DURATION,
   clipLengthFor,
-  configurePlayer,
   formatTime,
-  pauseSafely,
-  seekTo,
   segmentBounds,
   useBottomGap,
   wholeSeconds,
 } from '@/lib';
-import { useCropDraftStore } from '@/store';
+import { videoService } from '@/services';
+import { useCropDraftStore } from '@/stores';
 
 import { Button, Icon, Spinner, Touchable, Typography, VideoFrame } from '@/components/commons';
 import { TrimScrubber } from '../../../TrimScrubber';
@@ -47,7 +45,7 @@ export function TrimStep({
   const setDuration = useCropDraftStore((s) => s.setDuration);
 
   const player = useVideoPlayer(source.uri, (p) =>
-    configurePlayer(p, { loop: false, timeUpdateEventInterval: TIME_UPDATE_INTERVAL }),
+    videoService.configurePlayer(p, { loop: false, timeUpdateEventInterval: TIME_UPDATE_INTERVAL }),
   );
   const { status } = useEvent(player, 'statusChange', { status: player.status });
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
@@ -84,11 +82,11 @@ export function TrimStep({
     const nextPosition = position + Math.min(sinceLastCheck, MAX_LOOKAHEAD) * player.playbackRate;
     if (nextPosition >= bounds.end - LOOP_LEAD || position < bounds.start - 0.25) {
       check.loopedAt = now;
-      seekTo(player, bounds.start);
+      videoService.seek(player, bounds.start);
     }
   });
   const onPlayToEnd = useEffectEvent(() => {
-    seekTo(player, bounds.start);
+    videoService.seek(player, bounds.start);
     player.play();
   });
   useEffect(() => {
@@ -107,19 +105,19 @@ export function TrimStep({
   }, [isPlaying, active]);
 
   const startPreview = useEffectEvent(() => {
-    seekTo(player, bounds.start);
+    videoService.seek(player, bounds.start);
     player.play();
   });
   useEffect(() => {
     if (!ready || isPreparing || !active) return;
     startPreview();
-    return () => pauseSafely(player);
+    return () => videoService.pause(player);
   }, [player, ready, isPreparing, active]);
 
   const handleScrub = useCallback(
     (seconds: number) => {
       player.pause();
-      seekTo(player, seconds);
+      videoService.seek(player, seconds);
     },
     [player],
   );
@@ -127,7 +125,7 @@ export function TrimStep({
   const handleChange = useCallback(
     (seconds: number) => {
       setStart(seconds);
-      seekTo(player, seconds);
+      videoService.seek(player, seconds);
       player.play();
     },
     [player, setStart],

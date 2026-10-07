@@ -1,11 +1,11 @@
-import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { CLIP_DURATION, MIN_SOURCE_DURATION, useBottomGap } from '@/lib';
-import { useCropDraftStore } from '@/store';
+import { videoService } from '@/services';
+import { useCropDraftStore } from '@/stores';
 
 import { Button, Typography } from '@/components/commons';
 import type { PickerStepProps } from './types';
@@ -23,27 +23,15 @@ export function PickerStep({ onPicked, className = '', style, ...props }: Picker
     setError(null);
     setIsPicking(true);
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['videos'],
-        allowsEditing: false,
-        quality: 1,
-      });
-      if (result.canceled) return;
+      const source = await videoService.pickFromLibrary();
+      if (!source) return;
 
-      const asset = result.assets[0];
-      const duration = (asset.duration ?? 0) / 1000;
-      if (asset.duration != null && duration < MIN_SOURCE_DURATION) {
+      if (source.duration > 0 && source.duration < MIN_SOURCE_DURATION) {
         setError(t('crop.tooShort', { seconds: MIN_SOURCE_DURATION }));
         return;
       }
 
-      setSource({
-        uri: asset.uri,
-        duration,
-        width: asset.width || null,
-        height: asset.height || null,
-        fileName: asset.fileName ?? null,
-      });
+      setSource(source);
       onPicked();
     } catch (e) {
       console.warn('Video picker failed', e);

@@ -93,6 +93,9 @@ const de: Translation = {
       'Der gewählte Abschnitt liegt außerhalb des Videos. Geh zurück und passe die Auswahl an.',
     sourceUnreadable: 'Das Originalvideo konnte nicht gelesen werden. Wähle es erneut aus.',
     cropFailed: 'Beim Zuschneiden des Videos ist etwas schiefgelaufen.',
+    videoNotFound: 'Dieser Clip existiert nicht mehr.',
+    updateFailed: 'Deine Änderungen konnten nicht gespeichert werden. Versuche es erneut.',
+    deleteFailed: 'Beim Löschen des Clips ist etwas schiefgelaufen. Versuche es erneut.',
   },
   settings: {
     appearance: 'Darstellung',

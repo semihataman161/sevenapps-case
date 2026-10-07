@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { MediaItem } from '@/components/commons';
 import { formatDate, wholeSeconds } from '@/lib';
-import { thumbnailUri } from '@/services';
+import { videoService } from '@/services';
 
 import { DESCRIPTION_MAX_CHARS, TITLE_MAX_CHARS } from './constants';
 import type { VideoEntryProps } from './types';
@@ -18,7 +18,7 @@ export function VideoEntry({ video, onPress, className = '', ...props }: VideoEn
       title={video.name}
       description={video.description || undefined}
       meta={`${formatDate(video.createdAt, i18n.language)} · ${length}`}
-      imageUri={thumbnailUri(video.thumbnailName)}
+      imageUri={videoService.thumbnailUri(video.thumbnailName)}
       imageKey={video.id}
       titleMaxChars={TITLE_MAX_CHARS}
       descriptionMaxChars={DESCRIPTION_MAX_CHARS}

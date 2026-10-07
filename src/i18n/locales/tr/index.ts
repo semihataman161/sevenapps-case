@@ -90,6 +90,9 @@ const tr: Translation = {
     segmentOutside: 'Seçilen bölüm videonun dışında. Geri dönüp seçimi düzenle.',
     sourceUnreadable: 'Orijinal video okunamadı. Tekrar seçmeyi dene.',
     cropFailed: 'Video kırpılırken bir şeyler ters gitti.',
+    videoNotFound: 'Bu klip artık mevcut değil.',
+    updateFailed: 'Değişikliklerin kaydedilemedi. Tekrar dene.',
+    deleteFailed: 'Klip silinirken bir şeyler ters gitti. Tekrar dene.',
   },
   settings: {
     appearance: 'Görünüm',

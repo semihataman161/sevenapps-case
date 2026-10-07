@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { InfoRow, OptionRow, ScreenHeader, SettingsSection } from '@/components/specifics';
 import { getDeviceLanguage, NATIVE_LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from '@/i18n';
-import { useSettingsStore, type LanguagePreference, type ThemePreference } from '@/store';
+import { useSettingsStore, type LanguagePreference, type ThemePreference } from '@/stores';
 
 const THEME_OPTIONS = [
   { value: 'system', labelKey: 'settings.themeSystem' },

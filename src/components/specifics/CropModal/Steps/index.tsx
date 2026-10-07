@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
-import { useCropDraftStore } from '@/store';
+import { useCropDraftStore } from '@/stores';
 
 import { DetailsStep } from './DetailsStep';
 import { PickerStep } from './PickerStep';

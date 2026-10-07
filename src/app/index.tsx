@@ -15,7 +15,7 @@ import {
   type CropModalRef,
 } from '@/components/specifics';
 import { CLIP_DURATION } from '@/lib';
-import { useVideoStore } from '@/store';
+import { useVideoStore } from '@/stores';
 
 function openVideo(id: string) {
   router.push({ pathname: '/videos/[id]', params: { id } });
@@ -30,12 +30,14 @@ export default function VideoListScreen() {
   const insets = useSafeAreaInsets();
   const ids = useVideoStore((s) => s.ids);
   const status = useVideoStore((s) => s.status);
+  const total = useVideoStore((s) => s.total);
+  const isLoadingMore = useVideoStore((s) => s.isLoadingMore);
   const hydrate = useVideoStore((s) => s.hydrate);
+  const loadMore = useVideoStore((s) => s.loadMore);
   const cropModalRef = useRef<CropModalRef>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const openCropModal = () => cropModalRef.current?.show();
-  const total = ids.length;
 
   const renderItem = useCallback<ListRenderItem<string>>(
     ({ item }) => <VideoRow id={item} onPress={openVideo} />,
@@ -56,12 +58,15 @@ export default function VideoListScreen() {
 
   return (
     <View className="flex-1">
-      {total > 0 ? (
+      {ids.length > 0 ? (
         <FlashList
           data={ids}
           keyExtractor={(id) => id}
           renderItem={renderItem}
           ListHeaderComponent={header}
+          ListFooterComponent={isLoadingMore ? <Spinner className="py-6" /> : null}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
           contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}
         />
       ) : (

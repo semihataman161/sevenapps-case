@@ -91,6 +91,9 @@ const es: Translation = {
       'El fragmento seleccionado está fuera del vídeo. Vuelve atrás y ajusta la selección.',
     sourceUnreadable: 'No se pudo leer el vídeo original. Intenta elegirlo de nuevo.',
     cropFailed: 'Algo salió mal al recortar el vídeo.',
+    videoNotFound: 'Este clip ya no existe.',
+    updateFailed: 'No se pudieron guardar los cambios. Inténtalo de nuevo.',
+    deleteFailed: 'Algo salió mal al eliminar el clip. Inténtalo de nuevo.',
   },
   settings: {
     appearance: 'Apariencia',

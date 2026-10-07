@@ -1,36 +1,41 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { videoRepository } from '@/db';
-import { cropVideo, deleteFiles, type CropVideoInput } from '@/services';
-import { useVideoStore } from '@/store';
-import type { DiaryVideo, VideoMetadata } from '@/types';
+import { segmentBounds } from '@/lib';
+import { videoService, type VideoDetails, type VideoRecord } from '@/services';
+import { useVideoStore } from '@/stores';
 
-import type { UpdateVideoResult } from './types';
+import { FALLBACK_ERROR_KEYS, KNOWN_ERROR_KEYS } from './constants';
+import type { CropVideoInput, VideoErrorKey, VideoOperation } from './types';
 
 export type * from './types';
+
+export function videoErrorKey(error: unknown, operation: VideoOperation): VideoErrorKey {
+  const code = videoService.errorCode(error);
+  return code === 'unknown' ? FALLBACK_ERROR_KEYS[operation] : KNOWN_ERROR_KEYS[code];
+}
 
 export function useCropVideoMutation() {
   const add = useVideoStore((s) => s.add);
 
   return useMutation({
     mutationKey: ['videos', 'crop'],
-    mutationFn: (input: CropVideoInput) => cropVideo(input),
+    mutationFn: ({ source, start, details }: CropVideoInput) =>
+      videoService.crop({
+        source,
+        range: segmentBounds(start, source.duration),
+        details,
+      }),
     onSuccess: (video) => add(video),
   });
 }
 
 export function useUpdateVideoMutation(id: string) {
-  const updateMetadata = useVideoStore((s) => s.updateMetadata);
+  const updateDetails = useVideoStore((s) => s.updateDetails);
 
   return useMutation({
     mutationKey: ['videos', 'update', id],
-    mutationFn: async (metadata: VideoMetadata): Promise<UpdateVideoResult> => {
-      const clean = { name: metadata.name.trim(), description: metadata.description.trim() };
-      const updatedAt = Date.now();
-      await videoRepository.updateMetadata(id, clean, updatedAt);
-      return { metadata: clean, updatedAt };
-    },
-    onSuccess: ({ metadata, updatedAt }) => updateMetadata(id, metadata, updatedAt),
+    mutationFn: (details: VideoDetails) => videoService.updateDetails(id, details),
+    onSuccess: ({ details, updatedAt }) => updateDetails(id, details, updatedAt),
   });
 }
 
@@ -39,9 +44,8 @@ export function useDeleteVideoMutation() {
 
   return useMutation({
     mutationKey: ['videos', 'delete'],
-    mutationFn: async (video: DiaryVideo) => {
-      await videoRepository.remove(video.id);
-      deleteFiles(video.fileName, video.thumbnailName);
+    mutationFn: async (video: VideoRecord) => {
+      await videoService.delete(video);
       return video.id;
     },
     onSuccess: (id) => remove(id),

@@ -88,6 +88,9 @@ const en = {
     segmentOutside: 'The selected segment is outside the video. Go back and adjust the scrubber.',
     sourceUnreadable: 'The original video could not be read. Try picking it again.',
     cropFailed: 'Something went wrong while cropping the video.',
+    videoNotFound: 'This clip no longer exists.',
+    updateFailed: 'Your changes could not be saved. Try again.',
+    deleteFailed: 'Something went wrong while deleting the clip. Try again.',
   },
   settings: {
     appearance: 'Appearance',

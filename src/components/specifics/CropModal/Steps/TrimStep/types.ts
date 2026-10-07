@@ -1,9 +1,9 @@
 import type { ViewProps } from 'react-native';
 
-import type { SourceVideo } from '@/types';
+import type { VideoSource } from '@/services';
 
 export type TrimStepProps = ViewProps & {
-  source: SourceVideo;
+  source: VideoSource;
   onNext: () => void;
   active?: boolean;
   className?: string;

@@ -1,4 +1,4 @@
-import { useVideo } from '@/store';
+import { useVideo } from '@/stores';
 
 import { VideoEntry } from '../VideoEntry';
 import type { VideoRowProps } from './types';

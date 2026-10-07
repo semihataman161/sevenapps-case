@@ -1,7 +1,7 @@
 import type { KeyboardAwareScrollProps } from '@/components/commons';
-import type { SourceVideo } from '@/types';
+import type { VideoSource } from '@/services';
 
 export type DetailsStepProps = Omit<KeyboardAwareScrollProps, 'children'> & {
-  source: SourceVideo;
+  source: VideoSource;
   onComplete: () => void;
 };

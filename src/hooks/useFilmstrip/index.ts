@@ -1,6 +1,8 @@
 import type { VideoPlayer } from 'expo-video';
 import { useEffect, useState } from 'react';
 
+import { videoService } from '@/services';
+
 import type { Filmstrip } from './types';
 
 export type * from './types';
@@ -16,10 +18,8 @@ export function useFilmstrip(
   useEffect(() => {
     if (!enabled || duration <= 0 || count <= 0) return;
     let cancelled = false;
-    const step = duration / count;
-    const times = Array.from({ length: count }, (_, i) => Math.min(duration, i * step + step / 2));
-    player
-      .generateThumbnailsAsync(times, { maxWidth: 160 })
+    videoService
+      .createFilmstrip(player, { duration, count })
       .then((frames) => {
         if (!cancelled) setFilmstrip({ frames, settled: true });
       })

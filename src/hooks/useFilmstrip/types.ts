@@ -1,6 +1,6 @@
-import type { VideoThumbnail } from 'expo-video';
+import type { VideoFrame } from '@/services';
 
-export type FilmstripFrames = VideoThumbnail[];
+export type FilmstripFrames = VideoFrame[];
 
 export type Filmstrip = {
   frames: FilmstripFrames;

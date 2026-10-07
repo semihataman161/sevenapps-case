@@ -6,10 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Divider, Row, Typography } from '@/components/commons';
 import { ActionRow, EmptyState, ScreenHeader, VideoPlayer } from '@/components/specifics';
-import { useDeleteVideoMutation } from '@/hooks';
+import { useDeleteVideoMutation, videoErrorKey } from '@/hooks';
 import { formatDate, formatTime, wholeSeconds } from '@/lib';
-import { videoUri } from '@/services';
-import { useVideo } from '@/store';
+import { videoService } from '@/services';
+import { useVideo } from '@/stores';
 import type { IdRouteParams } from '@/types';
 
 export default function VideoDetailsScreen() {
@@ -53,7 +53,8 @@ export default function VideoDetailsScreen() {
         onPress: () =>
           deleteMutation.mutate(video, {
             onSuccess: () => router.back(),
-            onError: (error) => Alert.alert(t('video.deleteFailed'), error.message),
+            onError: (error) =>
+              Alert.alert(t('video.deleteFailed'), t(videoErrorKey(error, 'delete'))),
           }),
       },
     ]);
@@ -70,7 +71,7 @@ export default function VideoDetailsScreen() {
         </Typography>
 
         <VideoPlayer
-          uri={videoUri(video.fileName)}
+          uri={videoService.videoUri(video.fileName)}
           aspectRatio={video.width && video.height ? video.width / video.height : undefined}
           autoPlay
           loop

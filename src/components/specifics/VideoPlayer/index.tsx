@@ -1,7 +1,7 @@
 import { useVideoPlayer } from 'expo-video';
 
 import { VideoFrame } from '@/components/commons';
-import { configurePlayer } from '@/lib';
+import { videoService } from '@/services';
 
 import type { VideoPlayerProps } from './types';
 
@@ -14,7 +14,7 @@ export function VideoPlayer({
   ...frameProps
 }: VideoPlayerProps) {
   const player = useVideoPlayer(uri, (p) => {
-    configurePlayer(p, { loop });
+    videoService.configurePlayer(p, { loop });
     if (autoPlay) p.play();
   });
 

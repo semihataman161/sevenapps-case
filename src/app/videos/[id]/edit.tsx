@@ -6,8 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, KeyboardAwareScroll } from '@/components/commons';
 import { EmptyState, HeaderBackButton, MetadataForm, ScreenHeader } from '@/components/specifics';
-import { useUpdateVideoMutation } from '@/hooks';
-import { useVideo } from '@/store';
+import { useUpdateVideoMutation, videoErrorKey } from '@/hooks';
+import { useVideo } from '@/stores';
 import type { IdRouteParams } from '@/types';
 
 export default function EditVideoScreen() {
@@ -56,7 +56,9 @@ export default function EditVideoScreen() {
           submitLabel={t('form.saveChanges')}
           submitIcon="arrow-forward"
           isSubmitting={updateMutation.isPending}
-          submitError={updateMutation.error?.message}
+          submitError={
+            updateMutation.isError ? t(videoErrorKey(updateMutation.error, 'update')) : null
+          }
           onSubmit={(values) =>
             updateMutation.mutate(values, {
               onSuccess: () => {
