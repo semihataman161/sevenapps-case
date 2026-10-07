@@ -16,6 +16,7 @@ export type TrimScrubberProps = {
   duration: number;
   windowLength: number;
   start: number;
+  disabled?: boolean;
   frames: FilmstripFrames;
   labels: TrimScrubberLabels;
   formatLength: (seconds: number) => string;

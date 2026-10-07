@@ -119,6 +119,7 @@ export function TrimStep({
         <View className="mt-8">
           <TrimScrubber
             media={media}
+            disabled={!active}
             duration={source.duration}
             windowLength={windowLength}
             start={start}

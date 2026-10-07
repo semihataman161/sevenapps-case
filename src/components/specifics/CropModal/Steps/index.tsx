@@ -28,6 +28,7 @@ export function Steps({ step, onStepChange, onComplete }: StepsProps) {
             entering={FadeIn.duration(200)}
             className="flex-1"
             style={step === 1 ? undefined : { display: 'none' }}
+            pointerEvents={step === 1 ? 'auto' : 'none'}
           >
             <TrimStep source={source} active={step === 1} onNext={() => onStepChange(2)} />
           </Animated.View>

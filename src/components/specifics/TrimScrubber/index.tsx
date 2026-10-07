@@ -24,6 +24,7 @@ export function TrimScrubber({
   duration,
   windowLength,
   start,
+  disabled = false,
   frames,
   labels,
   formatLength,
@@ -77,8 +78,10 @@ export function TrimScrubber({
       Haptics.selectionAsync().catch(() => {});
     };
 
+    const interactive = !disabled && maxX > 0;
+
     const pan = Gesture.Pan()
-      .enabled(maxX > 0)
+      .enabled(interactive)
       .onStart(() => {
         dragOrigin.set(x.get());
         dragging.set(true);
@@ -98,7 +101,7 @@ export function TrimScrubber({
       });
 
     const tap = Gesture.Tap()
-      .enabled(maxX > 0)
+      .enabled(interactive)
       .onEnd((event) => {
         const target = clamp(event.x - windowWidth / 2);
         x.set(withTiming(target, { duration: 180 }));
@@ -108,6 +111,7 @@ export function TrimScrubber({
 
     return Gesture.Race(pan, tap);
   }, [
+    disabled,
     trackWidth,
     duration,
     maxX,
