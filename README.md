@@ -266,10 +266,12 @@ crop pipeline (trim → store → persist, rollback on DB failure, error mapping
 modules mocked, device-language selection, and locale completeness (same keys and
 placeholders in every language).
 
-Tested manually with dev builds on an **iOS Simulator** (iPhone 17 Pro, iOS 26.3, Xcode 27) and
-an **Android emulator** (Pixel 9 Pro): select → scrub → validate → crop & save, a source shorter
-than 5 s, editing, deleting (row and files removed), persistence across app restarts, and dark
-mode. Saved clips were checked with `ffprobe` (exactly 5.000 s for a normal segment).
+## Supported devices
+
+- **iOS**: iPhone and iPad running **iOS 16.4 or newer** (Expo SDK 57 deployment target).
+- **Android**: phones and tablets running **Android 7.0 (API 24) or newer** (`minSdkVersion`).
+
+The layout adapts to screen size and safe areas, so no device-specific setup is needed.
 
 ## Known limitations
 
