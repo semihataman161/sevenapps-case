@@ -1,497 +1,140 @@
 # Video Diary
 
-A React Native (Expo) app to keep a diary of short video moments: import a video, pick the
-5 seconds you care about, give it a name and description, and keep it in a list you can come
-back to.
+A React Native (Expo) app for keeping a diary of short video moments: import a video, pick the
+5 seconds that matter, give them a name and description, and come back to them anytime.
 
 Built for the SevenApps React Native case study.
 
+| Clip list | Trim | Details | Settings |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/list.png" width="190" alt="Clip list with the total count, search and saved clips" /> | <img src="docs/screenshots/trim.png" width="190" alt="Trim step with a film strip and the 5-second selection window" /> | <img src="docs/screenshots/details.png" width="190" alt="Details step with the selected segment, name and description" /> | <img src="docs/screenshots/settings.png" width="190" alt="Settings with theme and language options" /> |
+
+## Contents
+
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [Project structure](#project-structure)
+- [Testing](#testing)
+- [Supported devices](#supported-devices)
+- [Known limitations](#known-limitations)
+- [License](#license)
+
 ## Features
 
-| Area | What's there |
-| --- | --- |
-| **Clip list** (`/`) | List of cropped clips with a total count; each entry is a compact row (still, date, length, title, description). Tap to open. Typographic empty and error states. |
-| **Details** (`/videos/[id]`) | Plays the clip (native controls, looping) with its name, description, date and length. Edit and delete actions. |
-| **Crop modal** (on the list screen) | A React Native `Modal` (iOS page sheet; on Android a bottom sheet over a dimmed backdrop that closes when dragged down) with 3 steps with a progress indicator: **1. Select** a video from the library → **2. Trim** with a film-strip scrubber and a draggable 5 s window (live looping preview of the selection) → **3. Details** (name + description) and **Crop & save**. |
-| **Cropping** | `trimVideo` from `expo-trim-video`, run in the background through a TanStack Query mutation. The modal closes right away; a **Cropping…** row sits at the top of the list until the clip is saved, and a failed crop stays there with **Try again** / **Dismiss**. |
-| **Edit** (`/videos/[id]/edit`) — bonus | Edit name and description; changes are persisted. |
-| **Settings** (`/settings`) | Settings icon at the top right of the clip list. **Appearance:** System / Light / Dark. **Language:** device language, English, Türkçe, Deutsch, Español. Both choices are saved and applied instantly. |
-| **Bonus tech** | Expo SQLite for storage, Reanimated for the scrubber/press/entering animations, Yup validation (via react-hook-form). |
+- **Clip list**: paged list of saved clips with the total count and a search over names and
+  descriptions.
+- **Crop in three steps**: pick a video from the library, drag a 5-second window along a film
+  strip with a live looping preview, then add a name and description.
+- **Background cropping**: the modal closes right away and a *Cropping…* row tracks the job.
+  Failed crops can be retried or dismissed, and several crops can run at once.
+- **Details**: play a clip, edit its name and description, or delete it.
+- **Settings**: light, dark or system theme, and English, Türkçe, Deutsch or Español, applied
+  instantly and remembered.
+- **Deep links**: `videodiary://videos/<id>` opens any clip, even one not loaded in the list yet.
 
 ## Tech stack
 
-Expo SDK 57 · Expo Router · Zustand · TanStack Query · expo-trim-video · NativeWind 4 ·
-expo-video · Expo SQLite · Reanimated 4 + Gesture Handler · Yup + react-hook-form ·
-FlashList · expo-image · i18next + react-i18next + expo-localization · React Compiler.
+| Concern | Choice |
+| --- | --- |
+| Framework | Expo SDK 57 (React Native 0.86, React 19, React Compiler), TypeScript |
+| Navigation | Expo Router with typed routes |
+| State | Zustand (app state), TanStack Query (async writes and background crops) |
+| Storage | Expo SQLite (clips, migrations, paging), `expo-file-system` (video and poster files) |
+| Video | `expo-trim-video` (cropping), `expo-video` (playback, film strip), `expo-image-picker` |
+| UI | NativeWind 4, Reanimated 4, Gesture Handler, FlashList, `expo-image` |
+| Forms | react-hook-form with Yup |
+| i18n | i18next, react-i18next, `expo-localization` |
+| Testing | Jest (`jest-expo`), React Native Testing Library |
 
 ## Getting started
 
 ### Prerequisites
 
 - Node 20+ and npm
-- **iOS**: **Xcode 26.4 or newer** (required by Expo SDK 57) with its iOS platform/simulator
-  runtime installed (Xcode → Settings → Components, or `xcodebuild -downloadPlatform iOS`),
-  and CocoaPods
+- **iOS**: Xcode 26.4 or newer with an iOS simulator runtime, and CocoaPods
 - **Android**: Android Studio with an emulator or a device
 
-> `expo-trim-video` is a native module that isn't bundled in Expo Go, so the app runs as a
-> **development build**.
+`expo-trim-video` is a native module that isn't part of Expo Go, so the app runs as a
+**development build**.
 
-### Run
+### Install and run
 
 ```bash
 npm install
 npx expo run:ios       # or: npx expo run:android
 ```
 
-`expo run:*` generates the native projects (`ios/`, `android/` — git-ignored), builds and
-installs the app, then starts Metro. Afterwards `npm start` is enough while the native side
-doesn't change.
+`expo run:*` generates the native projects, builds and installs the app, and starts Metro.
+After that, `npm start` is enough until native dependencies change.
 
-If CocoaPods fails with a Unicode/encoding error, run with a UTF-8 locale:
-`LANG=en_US.UTF-8 npx expo run:ios`.
-
-**Getting test videos onto a simulator:** drag a video file onto the Simulator window, or
-`xcrun simctl addmedia booted ~/path/to/video.mp4`.
+> **Tip**: to add test videos to an iOS simulator, drag a file onto its window or run
+> `xcrun simctl addmedia booted path/to/video.mp4`. If CocoaPods fails with an encoding error,
+> run the build with `LANG=en_US.UTF-8`.
 
 ### Scripts
 
-| Command | Purpose |
+| Command | Description |
 | --- | --- |
-| `npm start` | Start Metro for an installed dev build |
-| `npm run ios` / `npm run android` | Build & run the native app |
-| `npm test` | Unit tests (jest-expo) |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run lint` | ESLint (`eslint-config-expo`, includes React Compiler rules) |
+| `npm start` | Start Metro for an installed development build |
+| `npm run ios` / `npm run android` | Build and run the native app |
+| `npm test` | Run the tests (`test:watch`, `test:coverage` also available) |
+| `npm run typecheck` | Type-check with `tsc` |
+| `npm run lint` | Lint with ESLint (Expo config and React Compiler rules) |
 
-## Usage
-
-1. Tap **+ New clip** in the header (the empty clip list points to it).
-2. **Choose from library** and pick a video.
-3. Drag the red selection window along the film strip, or tap the strip to jump. The preview loops the
-   selected 5 seconds. Tap the video to pause/play. Tap **Next**.
-4. Enter a name (required, 2–60 chars) and an optional description (≤ 500 chars), then
-   **Crop & save**. The modal closes right away and a **Cropping…** row appears at the top of
-   the list while the clip is processed in the background; it turns into the new clip when it's
-   saved. You can keep browsing or start another crop in the meantime.
-5. From details, use **Edit details** to change the text, or **Delete clip**.
-6. Tap the settings icon at the top right of the clip list to change the theme or language.
-
-Videos shorter than 5 s are kept whole. Videos shorter than 1 s are rejected.
-
-## Architecture
+## Project structure
 
 ```
 src/
-├── app/                      # Expo Router routes (screens only)
-│   ├── _layout.tsx           # Providers, theme, root stack (anchored on the list), splash until hydrated, ErrorBoundary
-│   ├── index.tsx             # Clip list
-│   ├── videos/[id]/index.tsx # Details
-│   ├── videos/[id]/edit.tsx  # Edit (modal)
-│   ├── settings.tsx          # Theme + language
-│   └── +not-found.tsx        # Unknown links / deep links
+├── app/          # Expo Router screens: list, clip details, edit, settings, 404
 ├── components/
-│   ├── commons/              # Basic primitives: Typography, Icon, Row, Stack, Card, Button, Input, …
-│   └── specifics/            # App components composed from commons: VideoEntry, VideoListHeader, CropModal, …
-├── hooks/                    # TanStack mutations/queries, media player, player status, segment playback, filmstrip
-├── services/                 # Self-contained service classes (VideoService, MediaPicker, MediaPlayer, SqliteDatabase, FileStorage, KeyValueStorage) + instances
-├── stores/                   # Zustand store factories (video list, persisted settings), crop draft, usePick
-├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
-├── lib/                      # constants, time math, text truncation, debounce, cn (class merging), Yup schema, theme palette, layout, query client
-├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
-└── types/                    # Shared icon types
+│   ├── commons/   # Generic building blocks: Typography, Button, Input, Sheet, MediaItem, …
+│   └── specifics/ # App components built from commons: CropModal, TrimScrubber, VideoEntry, …
+├── hooks/        # Mutations, background crop jobs, media player and trim playback hooks
+├── services/     # Self-contained service classes and the app's instances
+├── stores/       # Zustand store factories and the crop draft
+├── i18n/         # Translations (en, tr, de, es) and language detection
+├── lib/          # Pure helpers: time and segment math, validation, theme palette, …
+├── setup/        # Startup work: saved preferences, daily file clean-up
+└── testing/      # Test builders, render helpers and service fakes
 ```
 
-### Folder conventions
-
-Every module lives in a folder named after it:
-
-```
-components/specifics/VideoEntry/
-├── index.tsx   # the component; imports its types from ./types and re-exports them
-├── constants.ts # behaviour constants: limits, durations, thresholds (only if it has any)
-├── styles.ts   # style constants: class maps, variant tables, sizes (only if it has any)
-└── types.ts    # VideoEntryProps
-```
-
-- `index.ts(x)` holds the implementation, `types.ts` its types. Modules without types have
-  only an `index`.
-- Style-related constants (Tailwind class maps per variant/tone/size, fixed dimensions,
-  typography scales, theme-colour maps) live in the component's own `styles.ts`, and
-  behaviour constants (character limits, animation durations, gesture thresholds, playback
-  timings, step lists) in its `constants.ts`, so `index.tsx` only contains the component.
-  Both files are internal and not re-exported. Route files in `src/app` are the exception:
-  every file there becomes a route, so their few constants stay in the screen file.
-- Each top-level folder has an `index.ts` barrel exporting everything inside it, so code
-  imports from the folder: `import { formatTime, useThemeColors } from '@/lib'`.
-- `components/` has no barrel of its own. Components are imported from `commons` or
-  `specifics` explicitly, so every import shows which kind it is:
-  `import { Button } from '@/components/commons'`,
-  `import { VideoEntry } from '@/components/specifics'`.
-- Inside a folder, modules import each other relatively (`../VideoFrame`), never through
-  their own barrel, to avoid import cycles.
-- Subcomponents used by a single component live in its folder (e.g.
-  `TrimScrubber/Filmstrip`) and aren't exported from the barrel.
-- Layers only import downward: `types` → `lib`, `i18n` → `services` → `stores` →
-  `hooks` → `components` → `setup` / `app`. There are no runtime import cycles.
-- `src/app/` is the exception: Expo Router treats every file there as a route, so route
-  files stay flat and contain no component or type declarations.
-
-### Visual design
-
-An editorial, film-diary look rather than a card-based app UI:
-
-- **Palette** (warm, near-monochrome; accent used sparingly): background `#F5F3EE`, text
-  `#171717`, secondary `#77736C`, muted `#9A968F`, divider `#D8D4CC`, subtle surface
-  `#ECE9E2`, accent `#A33A32`, with a matching dark palette.
-- **One palette, CSS variables.** Colours are defined once in `src/lib/theme/palette.ts`
-  (light and dark). `tailwind.config.ts` imports it and turns it into CSS variables
-  (`:root` for light, `@media (prefers-color-scheme: dark)` for dark) and colour tokens such
-  as `bg-paper` or `text-ink` (`rgb(var(--color-paper) / <alpha-value>)`, so opacity
-  modifiers like `border-rule/50` still work). A single class therefore switches with the
-  theme; there are no `dark:` variants in the code. Places that need a plain colour value
-  instead of a class (icons, spinners, the text cursor, sheets, the navigation theme) read
-  the same palette through `useThemeColors()`.
-- **Class merging.** Components combine their own classes with the caller's through
-  `cn()` (`tailwind-merge`), never by string concatenation. When two classes conflict, the
-  later one wins, so a caller's `className="px-0"` really overrides a component's `px-5`.
-- **Type**: DM Serif Display for headings and entry titles, Inter for everything functional
-  (dates, durations, buttons, forms, navigation), tracked uppercase overlines for metadata,
-  tabular numerals for times and counts. Fonts load before the splash screen hides.
-- **Layout**: left-aligned, rules instead of cards, 4–6 px radii, no shadows; a compact,
-  scannable clip list and the video as the dominant element on the detail and trim
-  screens; spacing on a 4/8/12/16/24/32/48/64 rhythm.
-
-- **App icon**: a film strip whose middle frame is marked by the accent-red selection window
-  with a play symbol, the same "pick one moment from a video" gesture as the trim screen.
-  `assets/` holds only the files `app.json` uses: the app icon, the Android adaptive
-  foreground and monochrome layers, the light and dark splash images and the favicon.
-
-### Components: commons and specifics
-
-**`components/commons/`** holds the smallest building blocks. Each one does one thing, knows
-nothing about video diaries, and can be used in very different places:
-
-| Component | Purpose |
-| --- | --- |
-| `Typography` | All text. Serif variants (`display`, `headline`, `title`, `subtitle`) for editorial moments, sans variants (`body`, `label`, `caption`) for UI, and tracked uppercase `overline` / `meta` / `action` / `micro` (locale-aware uppercasing). `tone`, `weight`, `tabular` numerals, and `maxChars` to cut long text with an ellipsis (`truncate` from `lib`) |
-| `Icon` | Ionicons with a theme-aware, monochrome-by-default `tone` |
-| `Row` / `Stack` | Horizontal / vertical layout with `gap`, `align`, `justify` |
-| `Divider` | 1 px rule in the divider colour |
-| `Section` | Group with an optional overline heading |
-| `Touchable` | The one pressable base: fade (and optional scale) on press. Every tappable area (rows, entries, the trim preview) and `Button` use it |
-| `Spinner` | Activity indicator with a theme-aware `tone` |
-| `Thumbnail` | `expo-image` with the app's defaults (cover, short fade-in) |
-| `Button` | Every action. `primary` (ink block), `secondary` (ink outline), `danger` (accent outline) — 4 px radius, `regular` or `compact` size — and `text` (typographic action, e.g. `← BACK`, `+ NEW CLIP`). `title` is optional for icon-only buttons (pass `accessibilityLabel`) |
-| `Input` | Text input drawn as a bottom rule (ink when focused, accent when invalid), with optional `leading` / `trailing` adornments inside the rule |
-| `SearchField` | `Input` with a search icon and a clear button; keeps its own text, debounces it (`debounceMs`, default 300) and reports trimmed queries through `onSearch` |
-| `FormField` | Overline label, counter and error around any input |
-| `KeyboardAwareScroll` | Scroll view that keeps inputs above the keyboard |
-| `Sheet` | `Modal` presented as an iOS page sheet / an Android bottom sheet (dimmed backdrop, grabber, drag down to close). Takes `onClose`, optional `onBackPress` and a `header` that is also the drag handle |
-| `Header` | Uppercase title with optional `left` / `right` slots (no built-in horizontal padding) |
-| `PageHeader` | Screen masthead: `meta` and `topAction` on top, serif `title` with an `action` beside it, optional `footer` (e.g. a search field), rule below; adds the top safe area |
-| `MediaItem` | Tappable list row: thumbnail (`imageUri`, or any `leading` content in its place), `meta` overline, serif `title`, `description`, optional `footer` (e.g. actions), optional `titleMaxChars` / `descriptionMaxChars`, rule below |
-| `Stepper` | Generic step progress: takes `steps` (labels) and `current` (index); shows `01 / 03`, the current label and a 1 px progress rule sized by the number of steps |
-| `VideoFrame` | Letterboxed surface (6 px radius) for an `expo-video` player; never taller than `maxHeightRatio` of the screen (default 0.42) |
-
-Commons don't import app data (`stores`, `services`, `hooks`) and never import specifics.
-Components take everything they show through props: no translation keys, app constants or
-screen-specific spacing are hard-coded inside reusable components. Generic behaviour lives in
-a commons component (`Stepper`, `PageHeader`, `MediaItem`, …); a thin specifics component
-fills it with the app's data and texts (`StepIndicator`, `VideoListHeader`, `VideoEntry`, …).
-
-Raw primitives live only inside commons: `Text` (→ `Typography`), Ionicons (→ `Icon`),
-`TextInput` (→ `Input`), `Pressable` (→ `Touchable`, `Button`), `ActivityIndicator`
-(→ `Spinner`), `expo-image` (→ `Thumbnail`), `Modal` (→ `Sheet`). Screens and specifics never
-import them, so changing a commons component changes it everywhere it's used.
-
-**`components/specifics/`** holds components that only make sense in this app, assembled from
-commons:
-
-| Component | Built from |
-| --- | --- |
-| `VideoListHeader` | `PageHeader` filled with the video list's texts: total clips, settings icon button, title, `+ NEW CLIP` |
-| `VideoEntry` / `VideoRow` | `MediaItem` filled from a `DiaryVideo` (still, date · length, title ≤ 30 chars, description ≤ 80 chars) |
-| `CropJobRow` | `MediaItem` for a background crop: spinner while it runs; on failure an alert icon, the translated error and `Try again` / `Dismiss` buttons |
-| `ActionRow` | `Row` + `Typography` + `Icon` + `Divider` (full-width typographic action, e.g. `EDIT DETAILS →`, `DELETE ×`) |
-| `EmptyState` | `Typography` only: accent overline, serif headline, message, optional action; `align` `start` or `center` |
-| `OptionRow` | `Pressable` + `Row` + `Typography`; the selected row is a full-width inverted (ink) band |
-| `InfoRow` | `Row` + `Typography` |
-| `SettingsSection` | `Section` + `Divider` (full-width rules between rows, no cards) |
-| `VideoPlayer` | `VideoFrame` + an owned `expo-video` player |
-| `MetadataForm` | `Stack` + `FormField` + `Input` + `Button` (react-hook-form + Yup) |
-| `StepIndicator` | `Stepper` with the crop flow's translated step names (select, trim, details) |
-| `HeaderBackButton` | `Button` (`text` variant) + `router.back()`: the typographic `← BACK` action |
-| `ErrorScreen` | `EmptyState` + `Button`: the full-screen fallback shown by the root `ErrorBoundary`, with **Try again** |
-| `ScreenHeader` | `Header` + `HeaderBackButton` inside a top safe area. Native stack headers are hidden app-wide, so every screen draws the same flat header on iOS and Android (no iOS 26 glass back button); the iOS edge-swipe back gesture still works |
-| `TrimScrubber` | film-strip track (sprocket bands, frames), accent selection window of `windowLength` seconds, `├──┤` bracket, start/end times; all texts come in through `labels`, `formatLength` and `formatRange` (+ its own gesture parts) |
-| `CropModal` | `Sheet` + `Header` + `Button` + `StepIndicator`; its steps live in `CropModal/Steps`: `PickerStep`, `TrimStep` (`VideoFrame` + `TrimScrubber` + `Button`), `DetailsStep` (`MetadataForm`) |
-
-Screens in `src/app/` can use both. Every component extends the props of what it wraps
-(`ViewProps`, `TextProps`, `PressableProps`, `TextInputProps`, or another component's props)
-and forwards the rest with `...props`, so any native prop can be passed through. A passed
-`style` is merged with the component's own style, not replaced.
-
-### Services
-
-Every service is a class in its own folder under `src/services` and works like a small
-library: it imports nothing from the app (`@/lib`, `@/types`, other services), receives
-everything it depends on through its constructor, and exports its own types. Copy a folder
-into another project and it works there.
-
-| Service | Responsibility | Dependencies (injected) |
-| --- | --- | --- |
-| `VideoService` | The clip library: crop (trim → store file → poster → persist, with rollback), single record (`get`), paged listing (`listPage`, `count`), update details, delete, orphaned-file clean-up, file URIs. `videoErrorCode()` maps any error to a service error code | `repository`, `videos` / `thumbnails` file stores, `trimmer`, `thumbnailer`, optional `createId` / `now` |
-| `MediaPicker` | Picks one video from the photo library and returns its URI, duration (s), size and file name | library launcher (defaults to `expo-image-picker`) |
-| `MediaPlayer` | Wraps one `expo-video` player: settings (`configure`), control (`play`, `pause` that never throws, `toggle`, `seek`, `playFrom`), state (`status`, `isPlaying`, `currentTime`, `duration`, `playbackRate`), events as plain values with an unsubscribe function (`onStatusChange`, `onPlayingChange`, `onTimeUpdate`, `onPlayToEnd`, `onLoad`), filmstrip frames (`createFilmstrip`) | the native player; `native` is passed to the video view for rendering |
-| `VideoService/SqliteVideoRepository` | SQL for the `videos` table; one implementation of `VideoRepositoryContract` | a connection (`SqliteDatabase`) |
-| `SqliteDatabase` | Opens SQLite once and runs versioned migrations | `name`, `migrations`, optional `open` |
-| `FileStorage` | One folder in the documents directory: list files, resolve URIs, move files in, delete | folder name |
-| `KeyValueStorage` | Synchronous key-value store (used by the persisted settings store) | backend (defaults to `expo-sqlite/kv-store`) |
-
-The native modules (`expo-trim-video`, `expo-video-thumbnails`, `expo-image-manipulator`,
-`expo-image-picker`) are wrapped in small adapters (`VideoService/adapters`) or behind an
-injectable default (`MediaPicker`, `KeyValueStorage`). The poster adapter grabs the first frame
-and resizes it to a 360 px wide JPEG before it's stored. Every player operation goes through
-`MediaPlayer`: `useMediaPlayer(uri, options)` creates the `expo-video` player, configures it and
-returns it wrapped, and hooks and components only talk to that wrapper. Only the video view
-(`VideoFrame`) receives the native player, to render it. A `MediaPlayer` belongs to one player,
-so it is created per screen by the hook rather than in `services/instances`.
-
-**Wiring (dependency inversion).** `services/instances` is the composition root and the only place
-that creates concrete objects: the services (`videoService`, `mediaPicker`, `keyValueStorage`)
-and the stores built from them (`useVideoStore = createVideoStore(videoService)`,
-`useSettingsStore = createSettingsStore(keyValueStorage)`). Screens, hooks and components
-import what they need from `@/services`. The reusable layers don't:
-
-- **Services** receive their dependencies through their constructors.
-- **Stores** are factories that receive what they need: `createVideoStore` takes anything
-  with `listPage`, `count` and `get`; `createSettingsStore` takes any `StateStorage`.
-- **Startup jobs** receive their dependencies as arguments
-  (`sweepOrphanedFilesIfDue({ videos, storage })`).
-
-So services and store factories can be copied into another project, and their tests pass
-fakes directly instead of mocking modules.
-
-### Data flow
-
-```
-         ┌─────────── TanStack Query mutation (useCropVideoMutation) ───────────┐
-Step 3 → │ videoService.crop(): trim → move clip → thumbnail → INSERT into SQLite │ → Zustand add()
-  │      └───────────────────────────────────────────────────────────────────────┘
-  └─ modal closes at once; useCropJobs() (useMutationState) shows pending / failed crops in the list
-App start: SQLite ──videoService.listPage() + count()──hydrate()──▶ Zustand video store ──▶ screens
-Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cursor }) ──▶ appended to the store
-```
-
-- **SQLite is the source of truth.** All SQL lives in `VideoService/SqliteVideoRepository`;
-  queries are parameterised and select explicit columns (no `SELECT *`). Schema changes go
-  through append-only, versioned migrations (`PRAGMA user_version`) run in one exclusive
-  transaction by `SqliteDatabase`, which opens the database asynchronously, once, in WAL
-  mode; the video table's migrations live in `VideoService/migrations`.
-- **Pagination.** The list loads 20 clips at a time with keyset pagination on
-  `(created_at, id)` (backed by a composite index), so pages stay stable while clips are
-  added or removed. The header shows the real total from `COUNT(*)`.
-- **Search.** A search field under the title filters clips by name or description. The
-  field keeps its own text and reports a debounced (300 ms) query; the query runs in SQLite (`LIKE` with escaped `%` / `_`) and
-  is paged like the full list, so it stays fast as the clip list grows. Results of an
-  outdated query are ignored, and a new clip only appears in the list if it matches the
-  current search.
-- **Errors.** Services report typed codes (`VideoServiceError` with `notFound`,
-  `rangeOutOfBounds`, `sourceUnreadable`, `unknown`) instead of English messages; the hooks
-  layer maps them to translated messages per operation (`videoErrorKey`), so the UI never
-  shows raw database or native text.
-- **Zustand** holds the loaded pages (`ids` + `byId`, `total`, `nextCursor`) hydrated at launch, plus the
-  ephemeral crop-modal draft (`cropDraftStore`) shared by the three steps and cleared when
-  the modal closes. List rows subscribe to their own record, so editing one clip re-renders
-  only that row.
-- **Store layout**: each store lives in `src/stores/<name>Store/`. Stores with dependencies
-  are factories (`create<Name>Store(deps)`) instantiated in `services/instances`; the dependency-free
-  crop draft is a plain `useCropDraftStore` hook. Selectors that take arguments are exported
-  next to the store (`useVideoStore(selectVideo(id))`). Its types split data from behaviour (`<Name>State` for the data,
-  `<Name>Actions` for the functions, `<Name>Store` for both), and its initial state is a
-  single constant in `constants.ts` (`INITIAL_<NAME>_STATE`) reused by the store, its reset
-  action and the tests. Components read several fields of one store in a single call with
-  the typed `usePick` helper (`const { ids, total } = usePick(useVideoStore, ['ids', 'total'])`).
-  The keys are checked against the store's type, and since it is built on `useShallow` the
-  component re-renders only when one of the picked fields changes.
-- **TanStack Query** runs every async write as a mutation (crop, update, delete), giving
-  pending/error state to the UI. Cropping is real background work: **Crop & save** starts the
-  mutation and closes the modal immediately. The mutation lives in the `QueryClient`, not in
-  the modal, so it keeps running after the modal unmounts and its `onSuccess` (add to the
-  store, success haptic) still fires. `useCropJobs` reads the running and failed crops with
-  `useMutationState` and the list shows them as `CropJobRow`s; several crops can run at once.
-  Failed crops are kept (`gcTime: Infinity`) until the user taps **Try again** (runs the same
-  input again) or **Dismiss** (removes it from the mutation cache). Mutation keys come
-  from one key factory (`videoKeys`). Mutations don't retry automatically since they
-  write to disk.
-- **Files.** The trimmer writes to a temp/cache location; the clip is moved to
-  `Documents/videos/<id>.mp4` and a 360 px poster to `Documents/thumbnails/<id>.jpg`. Only
-  **file names** go into the database, and URIs are resolved at runtime, because the iOS app
-  container path can change between installs/updates. If the DB insert fails, the written
-  files are removed, and at most once a day (on launch, `setup/maintenance`)
-  `removeOrphanedFiles()` deletes files that no record references (e.g. after a crash
-  between saving a file and inserting its row).
-
-### Notable details
-
-- **Routing (Expo Router).** Routes are typed (`typedRoutes`): navigation uses object hrefs
-  (`router.push({ pathname: '/videos/[id]', params: { id } })`) and screens read params with
-  the route itself as the type (`useLocalSearchParams<'/videos/[id]'>()`), so renaming a route
-  breaks the build instead of a link. The root stack is anchored on the list
-  (`unstable_settings.anchor`), so a deep link such as `videodiary://videos/<id>` still has the
-  list underneath and Back works. Because the store only holds the loaded pages, the details
-  and edit screens use `useVideoRecord(id)`: it reads the store and, if the clip isn't there
-  (an older clip opened from a link), loads that one record from SQLite through a TanStack
-  query and caches it in the store without adding it to the list. The root layout exports an
-  `ErrorBoundary`, so a render error shows `ErrorScreen` with **Try again** instead of a red
-  screen or a crash; unknown links land on `+not-found`.
-
-- **Trim step playback** is split out of the `TrimStep` component into hooks built on
-  `MediaPlayer`: `useMediaPlayer` (creates the player), `usePlayerStatus` (status and playing
-  state through `useSyncExternalStore`, and when the source has loaded) and
-  `useSegmentPlayback` (keeps the preview looping inside the selected 5 s, restarts on
-  play-to-end, starts the preview once the editor is ready, and exposes `scrubTo`). Play/pause
-  and jumping to a new start call `media.toggle()` and `media.playFrom()`. The component only
-  lays out the UI.
-- **Scrubber** (`TrimScrubber`): the filmstrip comes from `player.generateThumbnailsAsync`.
-  Thumbnails are frame-accurate, so on Android a long keyframe interval makes them slow
-  (~2.3 s for 8 frames on an emulator with an 8 s GOP). The trim step shows a "Preparing your
-  video…" loader until the player is ready and the filmstrip is done, then reveals the
-  editor in one go, and only then starts the preview.
-- **Going back from Details to Trim** doesn't reload anything: the trim step stays mounted
-  (hidden, preview paused) while the details step is shown, so the player and filmstrip are
-  reused.
-  The selection window moves on the UI thread (Gesture Handler + Reanimated) and only hops to
-  JS every few pan events to seek the preview. The playhead follows `timeUpdate` events
-  without re-rendering React.
-- **Preview loop**: `timeUpdate` events arrive late and only every 100 ms, which let the frame
-  after the segment's end flash on screen. While playing, the trim screen reads
-  `player.currentTime` every animation frame and loops back if the next check would pass the
-  end. Android presents ~40–50 ms past the position it reports, so it loops 70 ms early.
-  Measured on Release builds by screen recording: no frame after the end is shown on either
-  platform, and the last second of the segment plays in full.
-- **Trim bounds**: native trimmers reject an `end` past the real duration, and picker
-  durations are rounded, so `segmentBounds()` clamps the segment and keeps a 50 ms margin
-  from the very end. The player's precise duration replaces the picker's once loaded.
-- **Scalability**: paged loading and paged search (20 per page) into FlashList with
-  self-subscribing rows; small 360 px posters shown through `expo-image` with
-  `recyclingKey`; a composite `(created_at, id)` index; a daily, not per-launch, file sweep.
-- **Bottom buttons**: `useBottomGap()` keeps bottom actions clear of the home indicator /
-  navigation bar: ≈ 50 pt from the screen edge on iOS, ≈ 64 dp on Android (gesture or
-  3-button navigation), and 16 from the edge on devices without a system bar.
-- **Reusable components**: see *Components: commons and specifics* above. `MetadataForm` is
-  shared by the crop flow and the edit screen.
-- **Theme**: the choice is applied with NativeWind's `colorScheme.set()`, which overrides
-  React Native's app-wide `Appearance`. So the palette's CSS variables, `useThemeColors()`
-  colours (headers, icons) and native UI (alerts, keyboard, video controls) all switch
-  together. "System" follows the device.
-- **Settings persistence**: a Zustand `persist` store backed by `KeyValueStorage`, which wraps
-  `expo-sqlite/kv-store`'s **synchronous** API. Only `theme` and `language` are saved, under
-  the app-prefixed key `video-diary/settings`. Preferences are restored before the first
-  render, so there's no flash of the wrong theme or language on launch.
-- **i18n**: i18next with bundled resources, initialised synchronously. "Device language" picks
-  the first supported language from the device's list (falls back to English) and is
-  re-checked when the app returns to the foreground (Android doesn't restart on a language
-  change). Translations are typed: every locale must match `i18n/locales/en`, so a missing key
-  fails `tsc`, and a unit test checks that every locale uses the same `{{placeholders}}`.
-  Validation and crop errors carry translation keys, not English text, so they're translated
-  at render time. Dates are formatted for the active language.
-
-### Adding a language
-
-1. Copy `src/i18n/locales/en/` to e.g. `src/i18n/locales/fr/`, translate it (typed as
-   `Translation`) and export it from `src/i18n/locales/index.ts`.
-2. Add the code to `AppLanguage` (`src/i18n/languages/types.ts`), to `SUPPORTED_LANGUAGES` and
-   `NATIVE_LANGUAGE_NAMES` (`src/i18n/languages/index.ts`), and register it in `resources` in
-   `src/i18n/instance/index.ts`.
-3. Add a `languages.fr` name to every locale, and `fr` to `supportedLocales` of the
-   `expo-localization` plugin in `app.json`.
+Services are small, injectable classes; stores are factories wired together in one place
+(`services/instances`); SQLite is the source of truth with keyset pagination; the UI is built
+from generic components filled with app data. See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+for the layers, data flow, design system and the details behind the trim screen.
 
 ## Testing
 
 ```bash
-npm test               # run once
-npm run test:watch     # re-run on change
-npm run test:coverage  # with a coverage report in coverage/
+npm test
 ```
 
-Jest with the `jest-expo` preset, and React Native Testing Library (`@testing-library/react-native`)
-for hooks and components. The tests cover the behaviour the app depends on, not framework or
-library behaviour, and not code that only forwards a call:
-
-| Area | What is tested |
-| --- | --- |
-| `lib` | Time formatting and segment math (clamping, the 5 s window, the end margin for native trimmers), word-aware truncation (emoji count as one character), the Yup metadata schema and its translation keys |
-| `VideoService` | Crop pipeline (trim → store → poster → save) with rollback when saving fails and no writes when trimming fails, keyset paging cursor, trimmed detail updates, delete order (record before files), orphaned-file clean-up, error-code mapping |
-| `SqliteVideoRepository` | Generated SQL and parameters: explicit columns, stable order, cursor paging, `LIKE` search with escaped `%` / `_`, insert column order, `notFound` on a missing update |
-| `SqliteDatabase` | Pending migrations in one transaction, skipping when current, one open for concurrent callers, retrying after a failed open |
-| `MediaPlayer` / `MediaPicker` | Partial settings, toggle, a pause that never throws, filmstrip frame times, the combined `onLoad` event and its cleanup; picked-asset mapping (ms → s, missing metadata, cancel) |
-| Stores | Video store paging, search (including ignoring outdated results), add/update/remove with the total kept in sync, loading one clip into the cache; crop-draft clamping; settings persistence |
-| Hooks | `useCropJobs`: newest crop first, a saved clip lands in the list and its job disappears, a failed crop keeps its message, retry re-runs the same input, dismiss removes it; `useVideoRecord`: uses a loaded clip, waits for the list, loads a clip outside the loaded pages (deep links), reports a missing one; `useSegmentPlayback`: starts and pauses the preview, loops back before the segment end, restarts on play-to-end, scrubbing; `useFilmstrip`: waits until enabled, returns frames, settles on failure; error code → message key mapping |
-| Components | `Button` (no press while disabled or loading), `SearchField` (debounced trimmed query, clear), `MetadataForm` (trimmed submit, required name, prefill, submit error, locked while saving), `PickerStep` (keeps the pick, rejects videos under 1 s, cancel, library error), `DetailsStep` (shows the segment, starts the crop and closes at once), `CropJobRow` (running vs failed, retry/dismiss by id) |
-| Startup | The daily orphaned-file sweep (due, not due, failed sweep not recorded) |
-| `i18n` | Every locale has the English keys, no empty texts and the same placeholders; device-language selection |
-
-Conventions:
-
-- **One behaviour per test**, named after the behaviour, written as arrange–act–assert.
-- **No shared state between tests.** Each test builds its own store, service or fake (`makeStore()`,
-  `makeService()`); test data comes from small builders in `src/testing` (`buildVideo`,
-  `buildSource`) that take only the fields a test cares about.
-- **Fakes instead of module mocks.** Services, store factories and startup jobs receive their
-  dependencies, so tests pass fakes directly. `jest.mock('@/services')` is used only where code
-  reads the app's instances (hooks and crop steps).
-- **Typed fakes.** Fakes are typed against the real contracts (`jest.Mocked<Pick<VideoService, …>>`,
-  `jest.Mocked<SegmentPlayer>`), so renaming a method or changing a signature breaks the test
-  build instead of leaving tests green against an old API. Hooks ask only for what they use
-  (`useSegmentPlayback` takes a `SegmentPlayer`, `useFilmstrip` a `FilmstripSource`), so their
-  fakes need no casts. Casts remain only at native boundaries (the SQLite handle, the
-  `expo-video` player and its thumbnails), whose types carry dozens of native members.
-- **Table-driven cases** with `it.each` / `describe.each` for inputs that share one rule.
-- **Test like a user.** Components are found by role, label or visible text
-  (`getByRole('button', { name: /crop & save/i })`, `getByLabelText('Name')`) and driven with
-  `userEvent`, never by test ids or internal state. Time-based behaviour (search debounce,
-  the preview loop) uses Jest fake timers.
-- **Shared helpers in `src/testing`**: `renderWithProviders` / `renderHookWithProviders` wrap the
-  tree in the providers the app has (safe area, a fresh `QueryClient` without retries, English
-  i18n), and `createServicesMock()` replaces `@/services` with fake services and a real video
-  store built from them, for code that reads the app's instances.
-- **Native modules are stubbed once** in `jest.setup.ts` (`expo-video`, Reanimated and
-  Worklets through their own Jest mocks); everything else runs for real.
-- **Mocks reset automatically** between tests (`clearMocks`, `restoreMocks`), so spies such as
-  silenced `console.warn` never leak into other tests.
+Jest with the `jest-expo` preset and React Native Testing Library. The tests cover the
+behaviour the app depends on: segment math and validation, the crop pipeline and its
+rollback, SQL generation and migrations, paging and search in the store, background crop jobs,
+deep-link loading, the trim preview loop, and the crop steps and forms as a user drives them.
+Testing conventions are described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing-conventions).
 
 ## Supported devices
 
-- **iOS**: iPhone and iPad running **iOS 16.4 or newer** (Expo SDK 57 deployment target).
-- **Android**: phones and tablets running **Android 7.0 (API 24) or newer** (`minSdkVersion`).
-
-The layout adapts to screen size and safe areas, so no device-specific setup is needed.
+- **iOS**: iPhone and iPad on iOS 16.4 or newer
+- **Android**: phones and tablets on Android 7.0 (API 24) or newer
 
 ## Known limitations
 
-- The selected segment always has a fixed length (5 s, or the whole source if it's shorter).
-  You choose where it starts and ends by moving the window, not by resizing it.
-- Clips are kept in the app's own storage. Deleting the app deletes the diary.
-- No web support: `expo-trim-video` is native-only.
-- **Android trim accuracy (`expo-trim-video`).** On iOS the library re-encodes with
-  `AVAssetExportSession`, so clips are frame-accurate: a 9.646–14.646 s selection produced
-  exactly 150 frames, 9.667–14.633 s. On Android it copies samples without re-encoding
-  (`MediaExtractor` + `MediaMuxer`) and seeks with `SEEK_TO_CLOSEST_SYNC`:
-  - The **video** starts at the keyframe nearest to the selected start, which can be before or
-    after it, while the **audio** starts at the selected time. When they differ, the clip opens
-    on a frozen first video frame until the video catches up, and the selected segment isn't
-    exactly what's kept. With a test video whose keyframes are 8.3 s apart, a 15.0–19.95 s
-    selection produced audio from 0 s but video only from 1.57 s (source 16.67–19.77 s).
-    Camera footage usually has a keyframe about every second, so the effect is smaller but can
-    still be visible.
-  - Copying stops at the first sample (audio or video) past the end, so the clip can be a few
-    frames short.
-  - Selections starting at 0 s are unaffected.
+- The selected segment always has a fixed length (5 s, or the whole video if it's shorter);
+  you choose where it starts, not how long it is.
+- Clips live in the app's own storage, so deleting the app deletes the diary.
+- No web support, as `expo-trim-video` is native-only.
+- System screens such as the video picker use the device language, not the in-app one.
+- **Android trim accuracy**: on Android, `expo-trim-video` copies samples without re-encoding,
+  so the video starts at the nearest keyframe while the audio starts at the selected time.
+  With sparse keyframes, the clip can open on a frozen frame and end a few frames early. iOS
+  re-encodes and is frame-accurate. The case asks for `expo-trim-video`, so it is used
+  unmodified; fixing this would mean re-encoding inside the library (e.g. with Media3
+  Transformer).
 
-  The case asks for `expo-trim-video`, so the app uses it unmodified. Making Android
-  frame-accurate would mean re-encoding inside the library (for example with Media3
-  Transformer, which the app already ships through `expo-video`) or contributing that upstream.
-- The in-app language applies to the app's own UI. System-provided screens such as the video
-  picker use the device language.
+## License
+
+[MIT](LICENSE)
