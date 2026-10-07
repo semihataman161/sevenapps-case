@@ -41,6 +41,11 @@ const tr: Translation = {
     message: "Bu bağlantı Video Diary'de hiçbir yere çıkmıyor.",
     goHome: 'Günlüğüme git',
   },
+  crash: {
+    title: 'Bir şeyler ters gitti',
+    message:
+      'Bu ekranda beklenmedik bir sorun oluştu. Tekrar dene; sorun sürerse uygulamayı yeniden başlat.',
+  },
   video: {
     notFoundTitle: 'Klip bulunamadı',
     notFoundMessage: 'Silinmiş olabilir.',

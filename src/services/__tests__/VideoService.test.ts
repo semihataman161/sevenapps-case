@@ -24,6 +24,7 @@ function makeService(overrides: Partial<VideoServiceDependencies> = {}) {
   const mocks = {
     repository: {
       count: jest.fn(async () => 0),
+      getById: jest.fn(async (): Promise<VideoRecord | null> => null),
       getPage: jest.fn(async (): Promise<VideoRecord[]> => []),
       getFileNames: jest.fn(async (): Promise<string[]> => []),
       insert: jest.fn(async (_video: VideoRecord) => {}),
@@ -161,6 +162,14 @@ describe('VideoService records', () => {
       after: { createdAt: 5, id: 'x' },
     });
     expect(page.nextCursor).toBeNull();
+  });
+
+  it('gets a single record by id', async () => {
+    const { service, deps } = makeService();
+    deps.repository.getById.mockResolvedValueOnce(record('a'));
+
+    await expect(service.get('a')).resolves.toEqual(record('a'));
+    expect(deps.repository.getById).toHaveBeenCalledWith('a');
   });
 
   it('counts records through the repository', async () => {

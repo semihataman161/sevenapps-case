@@ -70,6 +70,7 @@ export type VideoPage = {
 
 export type VideoRepositoryContract = {
   count: () => Promise<number>;
+  getById: (id: string) => Promise<VideoRecord | null>;
   getPage: (query: PageQuery) => Promise<VideoRecord[]>;
   getFileNames: () => Promise<string[]>;
   insert: (video: VideoRecord) => Promise<void>;

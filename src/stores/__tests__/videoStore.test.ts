@@ -4,12 +4,12 @@ import { useVideoStore } from '@/stores';
 import { INITIAL_VIDEO_STATE } from '@/stores/videoStore/constants';
 
 jest.mock('@/services', () => ({
-  videoService: { listPage: jest.fn(), count: jest.fn() },
+  videoService: { listPage: jest.fn(), count: jest.fn(), get: jest.fn() },
   keyValueStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
 }));
 
 const { videoService } = jest.requireMock('@/services') as {
-  videoService: { listPage: jest.Mock; count: jest.Mock };
+  videoService: { listPage: jest.Mock; count: jest.Mock; get: jest.Mock };
 };
 
 const makeVideo = (id: string, createdAt: number): VideoRecord => ({
@@ -143,5 +143,26 @@ describe('useVideoStore', () => {
     remove('missing');
     expect(useVideoStore.getState()).toMatchObject({ ids: ['a'], total: 1 });
     expect(useVideoStore.getState().byId.b).toBeUndefined();
+  });
+
+  it('loads a single video into the cache without adding it to the list', async () => {
+    useVideoStore.setState({
+      status: 'ready',
+      ids: ['b'],
+      byId: { b: makeVideo('b', 2) },
+      total: 2,
+    });
+    videoService.get.mockResolvedValueOnce(makeVideo('old', 1));
+
+    await expect(useVideoStore.getState().load('old')).resolves.toMatchObject({ id: 'old' });
+    expect(useVideoStore.getState().ids).toEqual(['b']);
+    expect(useVideoStore.getState().byId.old).toMatchObject({ id: 'old' });
+  });
+
+  it('leaves the cache alone when a video does not exist', async () => {
+    videoService.get.mockResolvedValueOnce(null);
+
+    await expect(useVideoStore.getState().load('missing')).resolves.toBeNull();
+    expect(useVideoStore.getState().byId).toEqual({});
   });
 });

@@ -39,6 +39,11 @@ const en = {
     message: "This link doesn't lead anywhere in Video Diary.",
     goHome: 'Go to my diary',
   },
+  crash: {
+    title: 'Something went wrong',
+    message:
+      'This screen ran into an unexpected problem. Try again, and if it keeps happening, restart the app.',
+  },
   video: {
     notFoundTitle: 'Clip not found',
     notFoundMessage: 'It may have been deleted.',

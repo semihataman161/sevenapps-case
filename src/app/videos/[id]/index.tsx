@@ -4,20 +4,29 @@ import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Divider, Row, Typography } from '@/components/commons';
+import { Button, Divider, Row, Spinner, Typography } from '@/components/commons';
 import { ActionRow, EmptyState, ScreenHeader, VideoPlayer } from '@/components/specifics';
-import { useDeleteVideoMutation, videoErrorKey } from '@/hooks';
+import { useDeleteVideoMutation, useVideoRecord, videoErrorKey } from '@/hooks';
 import { formatDate, formatTime, wholeSeconds } from '@/lib';
 import { videoService } from '@/services';
-import { useVideo } from '@/stores';
-import type { IdRouteParams } from '@/types';
 
 export default function VideoDetailsScreen() {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<IdRouteParams>();
-  const video = useVideo(id);
+  const { id } = useLocalSearchParams<'/videos/[id]'>();
+  const { video, isLoading } = useVideoRecord(id);
   const deleteMutation = useDeleteVideoMutation();
+
+  if (isLoading) {
+    return (
+      <View className="flex-1">
+        <ScreenHeader />
+        <View className="flex-1 items-center justify-center">
+          <Spinner />
+        </View>
+      </View>
+    );
+  }
 
   if (!video) {
     return (

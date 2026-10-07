@@ -40,6 +40,15 @@ export class SqliteVideoRepository implements VideoRepositoryContract {
     return row?.total ?? 0;
   }
 
+  async getById(id: string): Promise<VideoRecord | null> {
+    const db = await this.database.connection();
+    const row = await db.getFirstAsync<VideoRow>(
+      `SELECT ${VIDEO_COLUMNS} FROM videos WHERE id = ?`,
+      id,
+    );
+    return row ? fromRow(row) : null;
+  }
+
   async getPage({ limit, after, search }: PageQuery): Promise<VideoRecord[]> {
     const db = await this.database.connection();
     const conditions: string[] = [];

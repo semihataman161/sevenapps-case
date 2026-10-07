@@ -2,6 +2,7 @@ export * from './ActionRow';
 export * from './CropJobRow';
 export * from './CropModal';
 export * from './EmptyState';
+export * from './ErrorScreen';
 export * from './HeaderBackButton';
 export * from './InfoRow';
 export * from './MetadataForm';

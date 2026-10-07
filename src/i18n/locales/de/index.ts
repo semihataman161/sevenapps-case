@@ -41,6 +41,11 @@ const de: Translation = {
     message: 'Dieser Link führt in Video Diary nirgendwohin.',
     goHome: 'Zu meinem Tagebuch',
   },
+  crash: {
+    title: 'Etwas ist schiefgelaufen',
+    message:
+      'Auf diesem Bildschirm ist ein unerwartetes Problem aufgetreten. Versuche es erneut und starte die App neu, falls es weiter passiert.',
+  },
   video: {
     notFoundTitle: 'Clip nicht gefunden',
     notFoundMessage: 'Er wurde möglicherweise gelöscht.',

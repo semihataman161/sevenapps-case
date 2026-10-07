@@ -41,6 +41,11 @@ const es: Translation = {
     message: 'Este enlace no lleva a ninguna parte en Video Diary.',
     goHome: 'Ir a mi diario',
   },
+  crash: {
+    title: 'Algo salió mal',
+    message:
+      'Esta pantalla tuvo un problema inesperado. Inténtalo de nuevo y, si sigue ocurriendo, reinicia la app.',
+  },
   video: {
     notFoundTitle: 'Clip no encontrado',
     notFoundMessage: 'Puede que se haya eliminado.',

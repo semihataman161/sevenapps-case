@@ -98,6 +98,20 @@ describe('SqliteVideoRepository', () => {
     expect(sqlOf(db.getAllAsync)).not.toContain('LIKE');
   });
 
+  it('finds a record by id', async () => {
+    const { repository, db } = makeRepository();
+    db.getFirstAsync.mockResolvedValueOnce(row);
+
+    await expect(repository.getById('clip1')).resolves.toMatchObject({ id: 'clip1' });
+    expect(sqlOf(db.getFirstAsync)).toContain('FROM videos WHERE id = ?');
+    expect(db.getFirstAsync.mock.calls[0].slice(1)).toEqual(['clip1']);
+  });
+
+  it('returns null for a missing id', async () => {
+    const { repository } = makeRepository();
+    await expect(repository.getById('missing')).resolves.toBeNull();
+  });
+
   it('counts records', async () => {
     const { repository, db } = makeRepository();
     db.getFirstAsync.mockResolvedValueOnce({ total: 3 });

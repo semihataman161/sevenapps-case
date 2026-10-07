@@ -4,17 +4,15 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, KeyboardAwareScroll } from '@/components/commons';
+import { Button, KeyboardAwareScroll, Spinner } from '@/components/commons';
 import { EmptyState, HeaderBackButton, MetadataForm, ScreenHeader } from '@/components/specifics';
-import { useUpdateVideoMutation, videoErrorKey } from '@/hooks';
-import { useVideo } from '@/stores';
-import type { IdRouteParams } from '@/types';
+import { useUpdateVideoMutation, useVideoRecord, videoErrorKey } from '@/hooks';
 
 export default function EditVideoScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<IdRouteParams>();
-  const video = useVideo(id);
+  const { id } = useLocalSearchParams<'/videos/[id]/edit'>();
+  const { video, isLoading } = useVideoRecord(id);
   const updateMutation = useUpdateVideoMutation(id);
 
   const header = (
@@ -23,6 +21,17 @@ export default function EditVideoScreen() {
       left={<HeaderBackButton icon="close" title={t('common.close')} />}
     />
   );
+
+  if (isLoading) {
+    return (
+      <View className="flex-1">
+        {header}
+        <View className="flex-1 items-center justify-center">
+          <Spinner />
+        </View>
+      </View>
+    );
+  }
 
   if (!video) {
     return (

@@ -16,6 +16,7 @@ export type VideoState = {
 export type VideoActions = {
   hydrate: () => Promise<void>;
   loadMore: () => Promise<void>;
+  load: (id: string) => Promise<VideoRecord | null>;
   search: (query: string) => Promise<void>;
   add: (video: VideoRecord) => void;
   updateDetails: (id: string, details: VideoDetails, updatedAt: number) => void;

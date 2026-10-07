@@ -84,7 +84,7 @@ Videos shorter than 5 s are kept whole. Videos shorter than 1 s are rejected.
 ```
 src/
 ├── app/                      # Expo Router routes (screens only)
-│   ├── _layout.tsx           # Providers, theme, root stack (anchored on the list), splash until hydrated
+│   ├── _layout.tsx           # Providers, theme, root stack (anchored on the list), splash until hydrated, ErrorBoundary
 │   ├── index.tsx             # Clip list
 │   ├── videos/[id]/index.tsx # Details
 │   ├── videos/[id]/edit.tsx  # Edit (modal)
@@ -99,7 +99,7 @@ src/
 ├── i18n/                     # i18next instance, supported languages, locales (en, tr, de, es)
 ├── lib/                      # constants, time math, text truncation, debounce, Yup schema, theme, layout, player helpers, query client
 ├── setup/                    # Startup side effects: NativeWind interop, apply saved preferences
-└── types/                    # Shared domain, navigation and icon types
+└── types/                    # Shared icon types
 ```
 
 ### Folder conventions
@@ -212,6 +212,7 @@ commons:
 | `MetadataForm` | `Stack` + `FormField` + `Input` + `Button` (react-hook-form + Yup) |
 | `StepIndicator` | `Stepper` with the crop flow's translated step names (select, trim, details) |
 | `HeaderBackButton` | `Button` (`text` variant) + `router.back()`: the typographic `← BACK` action |
+| `ErrorScreen` | `EmptyState` + `Button`: the full-screen fallback shown by the root `ErrorBoundary`, with **Try again** |
 | `ScreenHeader` | `Header` + `HeaderBackButton` inside a top safe area. Native stack headers are hidden app-wide, so every screen draws the same flat header on iOS and Android (no iOS 26 glass back button); the iOS edge-swipe back gesture still works |
 | `TrimScrubber` | film-strip track (sprocket bands, frames), accent selection window of `windowLength` seconds, `├──┤` bracket, start/end times; all texts come in through `labels`, `formatLength` and `formatRange` (+ its own gesture parts) |
 | `CropModal` | `Sheet` + `Header` + `Button` + `StepIndicator`; its steps live in `CropModal/Steps`: `PickerStep`, `TrimStep` (`VideoFrame` + `TrimScrubber` + `Button`), `DetailsStep` (`MetadataForm`) |
@@ -230,7 +231,7 @@ into another project and it works there.
 
 | Service | Responsibility | Dependencies (injected) |
 | --- | --- | --- |
-| `VideoService` | Everything video: pick from the library, crop (trim → store file → poster → persist, with rollback), paged listing (`listPage`, `count`), update details, delete, orphaned-file clean-up, file URIs, filmstrip frames, player helpers (`configurePlayer`, `seek`, `pause`), error codes | `repository`, `videos` / `thumbnails` file stores, `trimmer`, `thumbnailer`, `picker`, optional `createId` / `now` |
+| `VideoService` | Everything video: pick from the library, crop (trim → store file → poster → persist, with rollback), single record (`get`), paged listing (`listPage`, `count`), update details, delete, orphaned-file clean-up, file URIs, filmstrip frames, player helpers (`configurePlayer`, `seek`, `pause`), error codes | `repository`, `videos` / `thumbnails` file stores, `trimmer`, `thumbnailer`, `picker`, optional `createId` / `now` |
 | `VideoService/SqliteVideoRepository` | SQL for the `videos` table; one implementation of `VideoRepositoryContract` | a connection (`SqliteDatabase`) |
 | `SqliteDatabase` | Opens SQLite once and runs versioned migrations | `name`, `migrations`, optional `open` |
 | `FileStorage` | One folder in the documents directory: list files, resolve URIs, move files in, delete | folder name |
@@ -303,6 +304,18 @@ Scrolling: list end ──loadMore()──▶ videoService.listPage({ after: cur
 
 ### Notable details
 
+- **Routing (Expo Router).** Routes are typed (`typedRoutes`): navigation uses object hrefs
+  (`router.push({ pathname: '/videos/[id]', params: { id } })`) and screens read params with
+  the route itself as the type (`useLocalSearchParams<'/videos/[id]'>()`), so renaming a route
+  breaks the build instead of a link. The root stack is anchored on the list
+  (`unstable_settings.anchor`), so a deep link such as `videodiary://videos/<id>` still has the
+  list underneath and Back works. Because the store only holds the loaded pages, the details
+  and edit screens use `useVideoRecord(id)`: it reads the store and, if the clip isn't there
+  (an older clip opened from a link), loads that one record from SQLite through a TanStack
+  query and caches it in the store without adding it to the list. The root layout exports an
+  `ErrorBoundary`, so a render error shows `ErrorScreen` with **Try again** instead of a red
+  screen or a crash; unknown links land on `+not-found`.
+
 - **Scrubber** (`TrimScrubber`): the filmstrip comes from `player.generateThumbnailsAsync`.
   Thumbnails are frame-accurate, so on Android a long keyframe interval makes them slow
   (~2.3 s for 8 frames on an emulator with an 8 s GOP). The trim step shows a "Preparing your
@@ -367,7 +380,7 @@ Unit tests cover segment math, formatting and text truncation, the Yup schema, a
 Zustand stores (including settings persistence, paging and search), the services (`VideoService` crop
 pipeline with rollback, paging, orphaned-file clean-up, details update, delete, filmstrip
 timing, player helpers and error codes; `SqliteVideoRepository` SQL, parameters, search
-escaping and row mapping; `SqliteDatabase` migrations; `KeyValueStorage`), the daily
+escaping and row mapping; `SqliteDatabase` migrations; `KeyValueStorage`), loading a single clip by id (repository, service and store), the daily
 file-sweep schedule, search in the video store (including ignoring outdated results),
 which background crops are listed as running or failed (a real `QueryClient`),
 using injected fakes instead of module mocks, device-language selection, and locale

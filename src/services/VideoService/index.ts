@@ -46,6 +46,10 @@ export class VideoService {
     return this.deps.repository.count();
   }
 
+  get(id: string): Promise<VideoRecord | null> {
+    return this.deps.repository.getById(id);
+  }
+
   async listPage({ limit, after = null, search }: PageQuery): Promise<VideoPage> {
     const rows = await this.deps.repository.getPage({ limit: limit + 1, after, search });
     const videos = rows.slice(0, limit);

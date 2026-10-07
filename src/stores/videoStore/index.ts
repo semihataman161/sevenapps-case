@@ -67,6 +67,12 @@ export const useVideoStore = create<VideoStore>()((set, get) => ({
     }
   },
 
+  load: async (id) => {
+    const video = await videoService.get(id);
+    if (video) set((state) => ({ byId: { ...state.byId, [id]: state.byId[id] ?? video } }));
+    return video;
+  },
+
   search: async (query) => {
     if (query === get().query) return;
     set({ query, isSearching: true });
